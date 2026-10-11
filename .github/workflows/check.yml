@@ -1,0 +1,13 @@
+name: check
+on: [push, pull_request]
+jobs:
+  offline:
+    # everything except the agents themselves: app, MCP server, adapter, pool, task checks, dashboard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: python -m py_compile circuit *.py examples/notes/*.py examples/notes/*/*.py
+      - run: docker build -t mcp-circuit docker/
+      - run: python tests/offline.py

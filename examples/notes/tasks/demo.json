@@ -1,0 +1,158 @@
+[
+ {
+  "prompt": "Tag every open (not done) note that has no tags with \"inbox\". Leave all other notes unchanged.",
+  "cond": "none",
+  "template": "seeded",
+  "check": [
+   {
+    "tag": "inbox",
+    "count": 4
+   },
+   {
+    "note": "Call the insurance company",
+    "tags": [
+     "inbox"
+    ]
+   },
+   {
+    "note": "Read chapter 4 of the design book",
+    "tags": [
+     "inbox"
+    ]
+   },
+   {
+    "note": "Write thank-you note to the mentor",
+    "tags": [
+     "inbox"
+    ]
+   },
+   {
+    "note": "Refill the prescription",
+    "tags": [
+     "inbox"
+    ]
+   }
+  ]
+ },
+ {
+  "prompt": "Tag every open (not done) note that has no tags with \"inbox\". Leave all other notes unchanged.",
+  "cond": "raw-mcp",
+  "template": "seeded",
+  "check": [
+   {
+    "tag": "inbox",
+    "count": 4
+   },
+   {
+    "note": "Call the insurance company",
+    "tags": [
+     "inbox"
+    ]
+   },
+   {
+    "note": "Read chapter 4 of the design book",
+    "tags": [
+     "inbox"
+    ]
+   },
+   {
+    "note": "Write thank-you note to the mentor",
+    "tags": [
+     "inbox"
+    ]
+   },
+   {
+    "note": "Refill the prescription",
+    "tags": [
+     "inbox"
+    ]
+   }
+  ]
+ },
+ {
+  "prompt": "Tag every open (not done) note that has no tags with \"inbox\". Leave all other notes unchanged.",
+  "cond": "good-mcp",
+  "template": "seeded",
+  "check": [
+   {
+    "tag": "inbox",
+    "count": 4
+   },
+   {
+    "note": "Call the insurance company",
+    "tags": [
+     "inbox"
+    ]
+   },
+   {
+    "note": "Read chapter 4 of the design book",
+    "tags": [
+     "inbox"
+    ]
+   },
+   {
+    "note": "Write thank-you note to the mentor",
+    "tags": [
+     "inbox"
+    ]
+   },
+   {
+    "note": "Refill the prescription",
+    "tags": [
+     "inbox"
+    ]
+   }
+  ]
+ },
+ {
+  "prompt": "Delete every note tagged \"old\", then add a note \"Call mom\" tagged \"family\".",
+  "cond": "none",
+  "template": "seeded",
+  "check": [
+   {
+    "tag": "old",
+    "count": 0
+   },
+   {
+    "note": "Call mom",
+    "tags": [
+     "family"
+    ]
+   }
+  ]
+ },
+ {
+  "prompt": "Delete every note tagged \"old\", then add a note \"Call mom\" tagged \"family\".",
+  "cond": "raw-mcp",
+  "template": "seeded",
+  "check": [
+   {
+    "tag": "old",
+    "count": 0
+   },
+   {
+    "note": "Call mom",
+    "tags": [
+     "family"
+    ]
+   }
+  ]
+ },
+ {
+  "prompt": "Delete every note tagged \"old\", then add a note \"Call mom\" tagged \"family\".",
+  "cond": "good-mcp",
+  "template": "seeded",
+  "check": [
+   {
+    "tag": "old",
+    "count": 0
+   },
+   {
+    "note": "Call mom",
+    "tags": [
+     "family"
+    ]
+   }
+  ]
+ }
+]

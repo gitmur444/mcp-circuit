@@ -1,0 +1,156 @@
+#!/usr/bin/env python3
+"""MCP Circuit: test MCP servers with real agents on real apps.
+
+  ./circuit demo              — check setup, build the agent image, run the bundled Notes demo, open the dashboard
+  ./circuit doctor            — check Docker, Claude login, ports, project
+  ./circuit up [N] | down | status | layout tile|video   — app workers (pool.py)
+  ./circuit run …             — agent tasks (run.py --help)
+  ./circuit dashboard         — dashboard only, http://localhost:8765
+  ./circuit init <folder>     — new project skeleton for your own app
+
+Project: env CIRCUIT_PROJECT=<folder>, or {"project": "<folder>"} in circuit.json, or the demo examples/notes.
+"""
+import json, os, shutil, socket, subprocess, sys, time, webbrowser
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+DEMO = os.path.join(HERE, "examples", "notes")
+PORT = 8765
+OK, BAD, WARN = "\033[32m✓\033[0m", "\033[31m✗\033[0m", "\033[33m!\033[0m"
+
+
+def sh(*cmd, **kw):
+    try:
+        return subprocess.run(cmd, capture_output=True, text=True, **kw)
+    except FileNotFoundError:
+        return None
+
+
+def listening(port):
+    try:
+        socket.create_connection(("127.0.0.1", port), 0.5).close()
+        return True
+    except OSError:
+        return False
+
+
+def image():
+    sys.path.insert(0, HERE)
+    import project
+    return project.CFG.get("image", "mcp-circuit")
+
+
+def auth():
+    """Where the agent's Claude login comes from (same order as run.py)."""
+    if os.environ.get("CLAUDE_CODE_OAUTH_TOKEN"):
+        return "subscription token (CLAUDE_CODE_OAUTH_TOKEN)"
+    if sys.platform == "darwin":
+        r = sh("security", "find-generic-password", "-s", "Claude Code-credentials")
+        if r and r.returncode == 0:
+            return "your Claude Code login (macOS Keychain)"
+    if os.path.isfile(os.path.expanduser("~/.claude/.credentials.json")):
+        return "your Claude Code login (~/.claude/.credentials.json)"
+    if os.environ.get("ANTHROPIC_API_KEY"):
+        return "API key (ANTHROPIC_API_KEY)"
+    return None
+
+
+def doctor(build=False):
+    ok = True
+    print(f"{OK if sys.version_info >= (3, 9) else BAD} Python {sys.version.split()[0]}")
+    ok &= sys.version_info >= (3, 9)
+    d = sh("docker", "info", "--format", "{{.ServerVersion}}")
+    if not d:
+        print(f"{BAD} Docker not installed: https://docs.docker.com/get-docker/"); return False
+    if d.returncode:
+        print(f"{BAD} Docker is installed but not running: start Docker Desktop / the docker service"); return False
+    print(f"{OK} Docker {d.stdout.strip()}")
+    img = image()
+    if not sh("docker", "image", "ls", "-q", img).stdout.strip():
+        if build:
+            print(f"{WARN} agent image {img} missing, building (~1–2 min, once)…", flush=True)
+            if subprocess.run(["docker", "build", "-t", img, os.path.join(HERE, "docker")]).returncode:
+                print(f"{BAD} image build failed"); return False
+            print(f"{OK} agent image {img} built")
+        else:
+            print(f"{WARN} agent image {img} not built yet: `./circuit demo` builds it, or docker build -t {img} docker/")
+    else:
+        print(f"{OK} agent image {img}")
+    a = auth()
+    if a:
+        print(f"{OK} Claude login: {a}")
+    else:
+        ok = False
+        print(f"{BAD} no Claude login for the agents. With a Claude subscription:\n"
+              f"    claude setup-token                          # prints a long-lived token\n"
+              f"    export CLAUDE_CODE_OAUTH_TOKEN=<that token>")
+    import project
+    print(f"{OK} project: {project.CFG.get('name')} ({os.path.relpath(project.DIR)})")
+    return ok
+
+
+def dashboard():
+    if not listening(PORT):
+        subprocess.Popen([sys.executable, os.path.join(HERE, "dashboard.py"), "--port", str(PORT)],
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+        for _ in range(20):
+            if listening(PORT):
+                break
+            time.sleep(0.25)
+    webbrowser.open(f"http://localhost:{PORT}/v2")
+
+
+def summary(results):
+    by = {}
+    for r in results:
+        b = by.setdefault(r["condition"], {"n": 0, "solved": 0, "calls": 0, "time": 0.0, "tokens": 0})
+        b["n"] += 1; b["solved"] += bool(r.get("solved"))
+        b["calls"] += r.get("calls") or 0; b["time"] += r.get("time_s") or 0; b["tokens"] += r.get("tokens") or 0
+    print(f"\n{'condition':<12}{'solved':>8}{'avg calls':>11}{'avg time':>10}{'avg tokens':>12}")
+    for c, b in by.items():
+        n = b["n"]
+        print(f"{c:<12}{str(b['solved']) + '/' + str(n):>8}{b['calls'] / n:>11.1f}{b['time'] / n:>9.0f}s{b['tokens'] / n:>12,.0f}")
+
+
+def demo():
+    os.environ["CIRCUIT_PROJECT"] = DEMO
+    if not doctor(build=True):
+        sys.exit("\nfix the items above and run ./circuit demo again")
+    print("\nDemo: 2 tasks × 3 conditions (no MCP / raw MCP / good MCP) on 6 Notes app workers.", flush=True)
+    dashboard()
+    print(f"dashboard: http://localhost:{PORT}/v2\n", flush=True)
+    r = subprocess.run([sys.executable, os.path.join(HERE, "run.py"), "--file", os.path.join(DEMO, "tasks", "demo.json")])
+    runs = sorted(os.listdir(os.path.join(DEMO, "out", "runs")))
+    if r.returncode == 0 and runs:
+        summary(json.load(open(os.path.join(DEMO, "out", "runs", runs[-1], "results.json"))))
+    subprocess.run([sys.executable, os.path.join(HERE, "pool.py"), "down"], stdout=subprocess.DEVNULL)
+
+
+def init(folder):
+    if os.path.exists(folder):
+        sys.exit(f"{folder} already exists")
+    shutil.copytree(DEMO, folder, ignore=shutil.ignore_patterns("out", "__pycache__"))
+    print(f"{folder}: a copy of the Notes demo. Replace app/ with your app (or point \"workspace\" at it), adapt target.py,\n"
+          f"mcp/ and conditions.json, write tasks/*.json. Then: CIRCUIT_PROJECT={folder} ./circuit demo-style runs:\n"
+          f"  CIRCUIT_PROJECT={folder} ./circuit run --file {folder}/tasks/demo.json")
+
+
+def main():
+    cmd, args = (sys.argv[1], sys.argv[2:]) if len(sys.argv) > 1 else ("help", [])
+    if cmd == "demo":
+        demo()
+    elif cmd == "doctor":
+        sys.exit(0 if doctor() else 1)
+    elif cmd in ("up", "down", "status", "layout", "restart", "stand"):
+        sys.exit(subprocess.run([sys.executable, os.path.join(HERE, "pool.py"), cmd] + args).returncode)
+    elif cmd == "run":
+        sys.exit(subprocess.run([sys.executable, os.path.join(HERE, "run.py")] + args).returncode)
+    elif cmd == "dashboard":
+        dashboard(); print(f"http://localhost:{PORT}/v2")
+    elif cmd == "init" and args:
+        init(args[0])
+    else:
+        print(__doc__)
+
+
+if __name__ == "__main__":
+    main()

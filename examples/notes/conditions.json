@@ -1,0 +1,20 @@
+{
+ "none": {
+  "desc": "no MCP: the agent finds and calls the app's HTTP API on its own",
+  "server": null
+ },
+ "raw-mcp": {
+  "desc": "MCP with a single generic http tool",
+  "server": "mcp",
+  "env": {
+   "MCP_STYLE": "raw"
+  }
+ },
+ "good-mcp": {
+  "desc": "MCP with focused, documented tools",
+  "server": "mcp",
+  "env": {
+   "MCP_STYLE": "good"
+  }
+ }
+}

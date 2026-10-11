@@ -1,0 +1,12 @@
+{
+ "name": "Notes demo",
+ "title": "DEMO · NOTES WEB APP",
+ "target": "target.py",
+ "templates": "templates",
+ "default_template": "seeded",
+ "workspace": null,
+ "hide": [],
+ "mcp_name": "notes",
+ "prompt_note": "\n\n(Context: the Notes app is running at http://host.docker.internal:{port}.)",
+ "ready_timeout": 30
+}

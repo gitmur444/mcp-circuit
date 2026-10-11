@@ -1,0 +1,246 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MCP Circuit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f2ee;--paper:#fbfaf7;--ink:#121212;--mut:#7a776f;--faint:#b9b6ad;--line:#d8d5cc;--accent:#2f5bff;
+--ok:#16803c;--run:#2f5bff;--warn:#b86e00;--err:#c8322b;--mono:'JetBrains Mono',ui-monospace,Menlo,monospace;--sans:'Inter Tight',-apple-system,system-ui,sans-serif}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+.page{max-width:1800px;overflow-x:hidden;border-right:1px solid var(--line);min-height:100vh}
+.mono{font-family:var(--mono)}.cap{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.cell{position:relative;padding:22px 26px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.cell:last-child{border-right:0}
+.x::before,.x::after{content:"+";position:absolute;font:300 14px/1 var(--mono);color:var(--faint);pointer-events:none}
+.x::before{left:-5px;top:-8px}.x::after{right:-5px;bottom:-8px}
+/* header */
+.top{display:flex;justify-content:space-between;align-items:center;padding:12px 26px;border-bottom:1px solid var(--line);background:var(--paper)}
+.brand{display:flex;gap:10px;align-items:center;font:700 13px var(--mono);letter-spacing:.1em}
+.brand svg{width:18px;height:18px}
+.top a{color:var(--accent);text-decoration:none;font-size:13px}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) minmax(240px,.9fr);background:var(--paper)}
+h1{font:700 clamp(40px,4.2vw,64px)/.92 var(--sans);letter-spacing:-.045em;margin:10px 0 14px}
+.kvm{display:grid;grid-template-columns:auto 1fr;gap:6px 18px;font:12.5px var(--mono);margin-top:12px}.kvm span{color:var(--mut);text-transform:uppercase;font-size:10.5px;letter-spacing:.08em;padding-top:2px}
+.pct{font:500 56px/1 var(--mono);letter-spacing:-.04em;margin:10px 0 12px}
+.ticks{position:relative;height:22px}
+.ticks .rule{position:absolute;inset:0;background:repeating-linear-gradient(90deg,var(--faint) 0 1px,transparent 1px 10%) bottom/100% 7px no-repeat,repeating-linear-gradient(90deg,var(--line) 0 1px,transparent 1px 2%) bottom/100% 4px no-repeat}
+.ticks .fill{position:absolute;left:0;top:4px;height:6px;background:var(--ink)}.ticks .fill.r{background:var(--run)}
+.ticks .mark{position:absolute;top:-2px;width:0;height:0;border:5px solid transparent;border-top:7px solid var(--ink);transform:translateX(-5px)}
+.dist{display:grid;grid-template-columns:auto 1fr auto;gap:8px 12px;align-items:center;margin-top:12px;font:12px var(--mono)}
+.dist .bar{height:1px;background:var(--line);position:relative}.dist .bar i{position:absolute;left:0;top:-2px;height:5px;background:var(--ink)}
+.dist .bar::before{content:"";position:absolute;left:0;top:-3px;width:1px;height:7px;background:var(--faint)}
+.dist b{font-weight:500}
+.ctrl{display:flex;flex-direction:column;gap:10px}
+.seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--ink)}
+.seg button{border:0;padding:9px 12px;font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;background:transparent;color:var(--ink);cursor:pointer}
+.seg button.on{background:var(--ink);color:var(--paper)}.seg button:disabled{cursor:wait;opacity:.5}
+.btn{display:flex;justify-content:space-between;align-items:center;gap:14px;border:1px solid var(--ink);background:var(--ink);color:var(--paper);padding:10px 14px;font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--err);border-color:var(--err)}.btn.ghost:hover{background:var(--err);color:#fff}
+.btn:disabled{opacity:.35;cursor:not-allowed}.btn.ghost:disabled:hover{background:transparent;color:var(--err)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.note{font:11px var(--mono);color:var(--mut);min-height:14px}
+/* sections */
+.sec{display:flex;align-items:baseline;justify-content:space-between;padding:34px 26px 14px;border-bottom:1px solid var(--line)}
+h2{font:600 34px/1 var(--sans);letter-spacing:-.035em;margin:0}
+.sec .cap{margin-left:14px}
+/* workers */
+.workers{display:grid;grid-template-columns:repeat(6,minmax(0,1fr))}
+@media(max-width:1200px){.workers{grid-template-columns:repeat(3,1fr)}.hero{grid-template-columns:1fr 1fr}}
+@media(max-width:700px){.workers,.hero{grid-template-columns:1fr}}
+.w{min-height:150px;display:flex;flex-direction:column;gap:10px;background:var(--bg);transition:background .25s,box-shadow .25s}
+.w:hover{background:var(--paper);box-shadow:inset 0 -2px 0 var(--ink)}
+.w.idle:hover{background:#eef5ef}.w.busy:hover{background:#eef1fd}.w.boot:hover,.w.tog:hover{background:#fbf3e6}.w.off:hover{background:#faeeec}
+.w:hover .num{color:var(--ink);transition:color .25s}
+.w.off .num,.w.off .foot{opacity:.6}
+.w.tog .st i{background:var(--warn);animation:pulse2 1s infinite}@keyframes pulse2{50%{opacity:.25}}
+.w .hd2{display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.wnote{font:11px var(--mono);color:var(--mut)}
+.w .hd{display:flex;justify-content:space-between;align-items:center}
+.w .num{font:500 40px/1 var(--mono);letter-spacing:-.05em;color:var(--faint)}
+.w.busy .num,.w.boot .num{color:var(--ink)}
+.st{display:inline-flex;align-items:center;gap:7px;font:500 10.5px var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.st i{width:7px;height:7px;border-radius:50%;background:var(--faint)}
+.w.idle .st i{background:var(--ok)}.w.busy .st i{background:var(--run);box-shadow:0 0 0 3px rgba(47,91,255,.18);animation:pulse 1.6s infinite}.w.boot .st i{background:var(--warn)}.w.off .st i{background:var(--err)}
+@keyframes pulse{50%{box-shadow:0 0 0 6px rgba(47,91,255,0)}}
+.w .task{font-size:13.5px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.w .foot{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:8px;font:12px var(--mono);color:var(--mut)}
+.w .ticks{height:12px}.w .ticks .fill{top:0;height:4px;background:var(--run)}
+/* tags */
+.tag{display:inline-block;border:1px solid currentColor;padding:2px 7px 1px;font:500 10.5px/1.5 var(--mono);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+/* filters */
+.tabs{display:flex;gap:22px}
+.tabs button{border:0;background:none;padding:4px 0;font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mut);cursor:pointer;border-bottom:2px solid transparent}
+.tabs button.on{color:var(--ink);border-color:var(--ink)}.tabs sup{font-size:9px;margin-left:3px}
+/* table */
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%}#tasks{overflow-anchor:none;table-layout:fixed;min-width:1200px}#tasks td.txt{max-width:none;min-width:0}
+th{font:500 10px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mut);text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:14px;border-bottom:1px solid var(--line);vertical-align:top;font-size:13.5px}
+th.n,td.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+th:first-child,td:first-child{padding-left:26px}th:last-child,td:last-child{padding-right:26px}
+tr.row{cursor:pointer}tr.row:hover td{background:var(--paper)}tr.row.open td{background:var(--paper);border-bottom-color:transparent}
+td.arr{width:12px;padding-right:0;font:12px var(--mono);color:var(--mut)}
+td.txt{max-width:340px;min-width:200px;line-height:1.45}td.txt div{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ctx{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.cells{display:grid;grid-template-columns:repeat(10,4px);gap:2px}.cells i{height:8px;background:var(--line)}.cells i.f{background:var(--ink)}
+/* expanded row */
+tr.det>td{padding:0;background:var(--paper)}
+.dx{--pad:14px;border-top:1px dashed var(--line)}
+.dx .h2{display:grid;grid-template-columns:1fr 1fr}.dx .h2>:first-child{padding-left:44px}.dx .h2>*{min-width:0}.dx .h2>:first-child{border-right:1px solid var(--line)}
+.dx .sh{padding:16px var(--pad) 8px}.dx .sh .cap{display:block}
+.dx .q4{display:grid;grid-template-columns:repeat(4,1fr)}
+.dx .q4>div{padding:4px var(--pad) 16px}.dx .q4>div+div{border-left:1px solid var(--line)}
+.dx .q4 .cap{display:block;font-size:9.5px}.dx .q4 b{display:block;font:500 17px var(--mono);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dx .band{border-top:1px solid var(--line)}
+.dx .txtc{padding:4px var(--pad) 18px;max-height:340px;overflow:auto;font-size:13.5px;line-height:1.6}
+.dx .txtc p{margin:0 0 8px}.dx .txtc ol,.dx .txtc ul{margin:0 0 8px;padding-left:20px}
+.dx code{font:12px var(--mono);background:var(--bg);padding:1px 4px}
+.dx .mt{border-collapse:collapse;margin:4px 0 10px;width:100%}.dx .mt td,.dx .mt th{border:1px solid var(--line);padding:5px 9px;font-size:12.5px;text-align:left;white-space:normal}
+.dx .mt th{font:500 10px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--mut);background:var(--bg)}
+.dx .cr{font:12px/1.5 var(--mono)}.dx .cr+.cr{border-top:1px solid var(--line)}
+.dx .cr .l{display:grid;grid-template-columns:20px 170px 1fr;gap:0 12px;padding:7px var(--pad) 7px 26px}
+.dx .cr .r{display:grid;grid-template-columns:44px 1fr;gap:0 12px;padding:7px var(--pad)}
+.dx .cr.hd{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.dx .cr .a{color:var(--mut);word-break:break-all}.dx .cr .n{text-align:right}
+.dx .cr:not(.hd):hover{background:var(--bg)}
+.empty{padding:40px 26px;font:12px var(--mono);color:var(--mut)}
+.demo{padding:10px 26px;font:12px var(--mono);background:#fff5d6;border-bottom:1px solid var(--line)}
+.hdrsw{display:inline-flex;gap:4px;margin-right:10px}.hdrsw a{border:1px solid var(--line);padding:1px 6px;color:var(--mut)}.hdrsw a.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.banner{position:relative;isolation:isolate;height:230px;border-bottom:1px solid var(--line);overflow:hidden;background:var(--paper);padding:26px 26px 0}
+.banner::before{content:"";position:absolute;inset:0;z-index:-2;background:url(/assets/hdr-a.png) 65% 45%/cover no-repeat;opacity:.3;filter:grayscale(.9) contrast(.85);transition:opacity .7s ease,filter .7s ease}
+.banner::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,var(--paper) 0 20%,rgba(251,250,247,.55) 38%,rgba(251,250,247,0) 58%);pointer-events:none}
+.banner:hover::before{opacity:1;filter:grayscale(0) saturate(1.2) contrast(1.05) brightness(1.03)}
+.banner .glow{position:absolute;inset:0;z-index:-1;background:radial-gradient(40% 70% at 70% 40%,rgba(255,150,60,.0),transparent);transition:background .7s;pointer-events:none}
+.banner:hover .glow{background:radial-gradient(40% 70% at 70% 40%,rgba(255,150,60,.18),transparent)}
+.w.ready .st i{background:#c99a2e}.btn.go1{padding:3px 10px;font-size:11px}
+/* worker app = power button in card header; agent = ▶/■ player in task block */
+.pw{width:22px;height:22px;border-radius:50%;border:1px solid var(--line);background:transparent;cursor:pointer;padding:0;display:grid;place-items:center;color:var(--faint);opacity:.6;transition:all .2s;flex:none}
+.pw svg{width:12px;height:12px}.pw.on{color:var(--ok);border-color:currentColor}
+.w:hover .pw{opacity:1}.pw:hover{background:var(--paper);color:var(--ink)}.pw.on:hover{color:var(--err)}
+.pw:disabled{opacity:.2!important;cursor:not-allowed}.pw.wait{animation:pulse2 1s infinite;cursor:wait}
+.ag{width:26px;height:26px;border-radius:50%;border:none;cursor:pointer;display:grid;place-items:center;color:#fff;padding:0;flex:none;transition:transform .15s}
+.ag:hover{transform:scale(1.12)}.ag.play{background:var(--ok)}.ag.stop{background:var(--ink)}.ag.stop:hover{background:var(--err)}
+.ag svg{width:10px;height:10px;fill:currentColor}
+.w .cnd{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0 8px;font:11px var(--mono);color:var(--mut)}.w .cnd span{border:1px solid var(--line);padding:1px 6px}
+.w .wt{display:flex;gap:8px;align-items:baseline;margin:2px 0 6px;font:11px var(--mono);color:var(--mut)}.w .wt b{color:var(--ink);font-weight:600;letter-spacing:.02em}
+.w .idn{display:flex;align-items:center;gap:14px;min-width:0}.w .idn .wt{margin:0}
+</style></head><body><div class="page">
+<div id="demo" class="demo" hidden>DEMO: synthetic data, no apps running.</div>
+<div class="banner"><div class="glow"></div><span id="meta" class="mono" style="position:absolute;top:26px;right:26px;font-size:11px;color:var(--mut)"></span><span class="cap">MCP evaluation</span><h1>MCP Circuit</h1>
+ <div class="mono" style="font-size:12px;color:var(--mut);line-height:1.6">6 WORKERS · ISOLATED AGENTS<br><span id="ptitle"></span></div></div>
+<div class="hero" id="hero"></div>
+<div class="sec"><div><h2 style="display:inline">Workers</h2><span class="cap" id="wcap"></span></div></div>
+<div class="workers" id="workers"></div>
+<div class="sec"><div><h2 style="display:inline">Tasks</h2><span class="cap" id="tcap"></span></div><div class="tabs" id="filters"></div></div>
+<div class="tw"><table id="tasks"></table></div>
+</div><script>
+const N=6;
+const STATE={wait:'waiting',run:'running',done:'finished'};
+const RES={stopped:'var(--mut)',ok:'var(--ok)',answered:'var(--ok)',done:'var(--ok)',fail:'var(--err)',error:'var(--warn)','error+reload':'var(--warn)',reload:'var(--warn)',timeout:'var(--err)',hang:'var(--err)',crash:'var(--err)',skip:'var(--mut)',boot:'var(--mut)'};
+const CC={none:'#a35a2b',prod:'#5a3fd1',sandbox:'#0f7d70'};const PAL=['#2f5bff','#b0225f','#7a5a1e','#2b7a2b','#5a3fd1','#b85a12','#00768a','#86418a'];
+const ccol=c=>{if(CC[c])return CC[c];let h=0;for(const ch of c)h=(h*31+ch.charCodeAt(0))>>>0;return PAL[h%PAL.length]};
+const PH={boot:'warming up',ready:'warm, awaiting start',agent:'working',oracle:'checking'};
+const tag=(t,c)=>`<span class="tag" style="color:${c}">${esc(t)}</span>`;
+const fmt=(v,d=0)=>v==null?'—':Number(v).toLocaleString('en-US',{maximumFractionDigits:d,minimumFractionDigits:d});
+const kf=n=>n==null?'—':n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e3?Math.round(n/1e3)+'k':String(n);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const inl=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/`([^`]+)`/g,'<code>$1</code>');
+const md=s=>{const o=[];let l=null,tb=null;const flush=()=>{if(tb){o.push(`<table class="mt"><tr>${tb[0].map(c=>`<th>${inl(c)}</th>`).join('')}</tr>${tb.slice(1).map(r=>`<tr>${r.map(c=>`<td>${inl(c)}</td>`).join('')}</tr>`).join('')}</table>`);tb=null}};
+ for(const raw of String(s||'').split('\n')){const x=raw.trim();
+ if(/^\|.*\|$/.test(x)){if(l){o.push(`</${l}>`);l=null}if(/^\|[\s:|-]+\|$/.test(x))continue;(tb=tb||[]).push(x.slice(1,-1).split('|').map(c=>c.trim()));continue}flush();const m=x.match(/^(\d+[.)]|[-*•])\s+(.*)/);
+ if(m){const t=/\d/.test(m[1])?'ol':'ul';if(l!==t){if(l)o.push(`</${l}>`);o.push(`<${t}>`);l=t}o.push(`<li>${inl(m[2])}</li>`);continue}
+ if(l){o.push(`</${l}>`);l=null}if(x)o.push(`<p>${inl(x)}</p>`)}flush();if(l)o.push(`</${l}>`);return o.join('')};
+const plain=s=>String(s||'').replace(/\*\*|`/g,'').replace(/\s+/g,' ').trim();
+const mmss=s=>s==null?'—':`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+const pad=n=>String(n).padStart(2,'0');
+const opened=new Set();let wnote={};
+async function tw(i,on){wnote[i]=on?'starting…':'stopping…';tick();try{const r=await fetch(`/api/worker?i=${i}&on=${on?1:0}`,{method:'POST'});wnote[i]=(await r.json()).message}catch(e){wnote[i]='unreachable'}tick();setTimeout(()=>{delete wnote[i]},6000)}let filter='all',layout='tile',note='',moving=false,confirmReset=false,resetNote='';
+let clickAnc=null;
+function toggle(k,el){if(el)clickAnc={k:el.dataset.k,top:el.getBoundingClientRect().top};opened.has(k)?opened.delete(k):opened.add(k);tick()}
+async function stopA(i){try{await fetch('/api/stop'+(i?'?i='+i:''),{method:'POST'})}catch(e){}tick()}
+async function go(i){try{await fetch('/api/go'+(i?'?i='+i:''),{method:'POST'})}catch(e){}tick()}
+let warmSet='',warmNote='';async function warm(){if(!warmSet)return;try{const r=await fetch('/api/warm?file='+encodeURIComponent(warmSet),{method:'POST'});warmNote=(await r.json()).message}catch(e){warmNote='unreachable'}tick()}
+async function doReset(){confirmReset=false;try{const r=await fetch('/api/reset',{method:'POST'});resetNote=(await r.json()).message}catch(e){resetNote='unreachable'}opened.clear();tick()}
+async function setLayout(m){if(moving||m===layout)return;moving=true;note='moving windows…';tick();
+ try{const r=await fetch('/api/layout?mode='+m,{method:'POST'});const j=await r.json();layout=j.layout;note=r.ok?'windows moved':j.message}catch(e){note='unreachable'}moving=false;tick()}
+async function tick(){
+ let d;try{d=await (await fetch('/api/state')).json()}catch(e){document.getElementById('meta').textContent='dashboard.py unreachable';return}
+ document.getElementById('ptitle').textContent=(d.project&&(d.project.title||d.project.name))||'';
+ document.getElementById('demo').hidden=!d.demo;
+ const now=Date.now()/1000,r=d.runner||{queue:[],workers:[],done:[],run:'—',started:now};layout=d.layout||layout;
+ const online={},tog={},lbl={};(d.slots||[]).forEach(s=>{online[s.slot]=s.alive;tog[s.slot]=s.toggling;lbl[s.slot]=s.label});const ws={};(r.workers||[]).forEach(w=>ws[w.id]=w);
+ document.getElementById('meta').textContent=`updated ${new Date().toLocaleTimeString('en-US')}`;
+ const rows=[];(r.workers||[]).filter(w=>w.job).forEach(w=>rows.push({st:'run',t:Object.assign({},w.job,w.live||{}),w:w.id,since:w.since}));
+ (r.queue||[]).forEach(t=>rows.push({st:'wait',t}));[...(r.done||[])].reverse().forEach(t=>rows.push({st:'done',t,res:t.result||t.condition}));
+ const cnt={wait:0,run:0,done:0},rc={};rows.forEach(x=>{cnt[x.st]++;if(x.st=='done')rc[x.res]=(rc[x.res]||0)+1});
+ const active=r.manual?(r.workers||[]).some(w=>w.job):r.run!=='—'&&!/\(/.test(r.run),total=rows.length||1,pct=100*cnt.done/total;
+ const runName=String(r.run).replace(/\s*\(.*\)/,''),runSt=r.run==='—'?'none':/\(/.test(r.run)?String(r.run).match(/\((.*)\)/)[1]:'running';
+ const dur=r.run==='—'?null:(active?now:(r.updated||now))-r.started;
+ const conds=[...new Set(rows.map(x=>x.t.condition).filter(c=>c&&c!=='?'))];
+ const dmax=Math.max(1,...Object.values(cnt),...Object.values(rc));
+ const dist=(k,v,c)=>`<span>${esc(k)}</span><div class="bar"><i style="width:${100*v/dmax}%;background:${c}"></i></div><b>${v}</b>`;
+ // HERO
+ document.getElementById('hero').innerHTML=`
+  <div class="cell"><span class="cap">Run</span>
+   <div class="kvm"><span>id</span><b>${esc(runName)}</b><span>status</span><b>${esc(runSt)}</b><span>${active?'running':'lasted'}</span><b>${mmss(dur)}</b>
+   <span>conditions</span><b>${conds.map(c=>tag(c,ccol(c))).join(' ')||'—'}</b></div></div>
+  <div class="cell"><span class="cap">Progress</span><div class="pct">${Math.round(pct)}<span style="font-size:24px;color:var(--mut)">%</span></div>
+   <div class="ticks"><div class="rule"></div><div class="fill" style="width:${pct}%"></div><div class="fill r" style="left:${pct}%;width:${100*cnt.run/total}%"></div><div class="mark" style="left:${pct}%"></div></div>
+   <div class="mono" style="font-size:11px;color:var(--mut);margin-top:8px">DONE ${cnt.done} / ${rows.length}</div></div>
+  <div class="cell"><span class="cap">Distribution</span><div class="dist">
+   ${dist('waiting',cnt.wait,'var(--faint)')}${dist('running',cnt.run,'var(--run)')}${dist('finished',cnt.done,'var(--ink)')}
+   ${Object.entries(rc).sort((a,b)=>b[1]-a[1]).map(([k,v])=>dist(k,v,RES[k]||'var(--run)')).join('')}</div></div>
+  <div class="cell ctrl"><span class="cap">App windows</span>
+   ${(r.workers||[]).some(w=>w.phase==='ready')?`<button class="btn" onclick="go()">▶ Start all · ${(r.workers||[]).filter(w=>w.phase==='ready').length} ready, ${(r.workers||[]).filter(w=>w.phase==='boot').length} loading</button>`:''}
+   <div class="seg">${[['tile','Full screen'],['video','Video 16:9']].map(([k,t])=>`<button class="${layout==k?'on':''}" ${moving?'disabled':''} onclick="setLayout('${k}')">${t}</button>`).join('')}</div>
+   <div class="note">${esc(note)}</div>
+   <button class="btn ghost" ${active?'disabled title="run in progress"':''} onclick="doReset()">Clear tasks <span>×</span></button>
+   <div class="note">${esc(resetNote)}</div></div>`;
+ // WORKERS
+ let nOn=0,nBusy=0;
+ document.getElementById('workers').innerHTML=[...Array(N)].map((_,k)=>{const id=k+1,w=ws[id],on=!!online[id],busy=!!(w&&w.job);if(on)nOn++;if(busy)nBusy++;
+  const bootG=on&&lbl[id]&&lbl[id].booting&&now-lbl[id].booting<600&&!busy,tg=tog[id]||(bootG?'boot':''),cls=tg=='boot'?'boot':tg?'tog':busy?(w.phase==='boot'?'boot':w.phase==='ready'?'ready':'busy'):on?'idle':'off',el=busy?now-w.since:0;
+  const st=tg=='boot'?'warming up':tg=='start'?'starting…':tg=='stop'?'stopping…':busy?(PH[w.phase]||w.phase):on?'idle':'offline';
+  const sw=`<button class="pw ${on||tg=='start'?'on':''} ${tg?'wait':''}" ${busy||tg?'disabled':''} title="${busy?'app is in use by the agent; stop the agent first ■':on?'turn off worker app':'turn on worker app'}" onclick="event.stopPropagation();tw(${id},${on?0:1})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 3v9"/><path d="M6.3 7.5a8 8 0 1 0 11.4 0"/></svg></button>`;
+  return `<div class="cell w ${cls}"><div class="hd"><div class="idn"><span class="num">${pad(id)}</span>${(()=>{const t=(busy&&w.job.worker_template)||(lbl[id]&&lbl[id].template);return on&&t?`<span class="wt" title="worker template">${tag(t,'var(--ink)')}</span>`:''})()}</div>${sw}</div>
+   ${busy?`<div class="task">${esc(plain(w.job.prompt||w.job.scenario||w.job.id))}</div>
+    <div class="foot"><span class="st"><i></i>${st}</span><span style="display:flex;align-items:center;gap:8px">${w.phase==='ready'?`<button class="ag play" title="start agent" onclick="event.stopPropagation();go(${id})"><svg viewBox="0 0 10 10"><path d="M2 1l7 4-7 4z"/></svg></button>`:''}${w.phase!=='boot'&&w.phase!=='ready'?`<button class="ag stop" title="stop agent (app keeps running)" onclick="event.stopPropagation();stopA(${id})"><svg viewBox="0 0 10 10"><rect x="1.5" y="1.5" width="7" height="7" rx="1"/></svg></button> `:''}${mmss(el)}</span></div>`
+   :`<div class="foot"><span class="st"><i></i>${st}</span><span>${wnote[id]||(tg=='start'?'~2 min':on?'':'app off')}</span></div>`}</div>`}).join('');
+ document.getElementById('wcap').textContent=`${nOn} online · ${nBusy} busy`;
+ // FILTERS
+ const keys=['all','wait','run','done',...Object.keys(rc).filter(k=>!STATE[k])];
+ const kc=k=>k=='all'?rows.length:STATE[k]?cnt[k]:rc[k];
+ document.getElementById('filters').innerHTML=keys.map(k=>`<button class="${filter==k?'on':''}" onclick="filter='${k}';tick()">${k=='all'?'all':STATE[k]||k}<sup>${kc(k)}</sup></button>`).join('');
+ document.getElementById('tcap').textContent=`${rows.length} in run`;
+ // TABLE
+ const vis=rows.filter(x=>filter=='all'||x.st==filter||(x.st=='done'&&x.res==filter));
+ const head='<colgroup><col style="width:44px"><col style="width:calc(28% - 44px)"><col style="width:7%"><col style="width:8%"><col style="width:7%"><col style="width:5%"><col style="width:6%"><col style="width:7%"><col style="width:7%"><col style="width:25%"></colgroup><tr><th></th><th>prompt</th><th>condition</th><th>state</th><th>result</th><th class="n">worker</th><th class="n">time</th><th class="n">tool calls</th><th class="n">ctx</th><th>answer / error</th></tr>';
+ // anchor: the first visible row stays in place, only content below changes; scroll inside blocks is preserved
+ const TB=document.getElementById('tasks');let anc=null;
+ for(const r of TB.querySelectorAll('tr.row')){const b=r.getBoundingClientRect();if(b.bottom>0){anc={k:r.dataset.k,top:b.top};break}}
+ if(clickAnc)anc=clickAnc;clickAnc=null;
+ const inner={};TB.querySelectorAll('[data-s]').forEach(e=>inner[e.dataset.s]=e.scrollTop);
+ TB.innerHTML=head+(vis.length?vis.map(x=>{const t=x.t,key=String(t.id||t.scenario),op=OPEN_ALL||opened.has(key);
+  const cond=t.condition&&!['?',x.res].includes(t.condition)?t.condition:'';
+  const cp=t.ctx_max?100*t.ctx_max/(t.ctx_window||1e6):null;
+  const ctx=cp==null?'—':`<div class="ctx"><span>${cp.toFixed(1)}%</span><div class="cells">${[...Array(10)].map((_,i)=>`<i class="${cp>i*10?'f':''}"></i>`).join('')}</div></div>`;
+  const stc=x.st=='run'?'var(--run)':x.st=='wait'?'var(--mut)':'var(--ink)';
+  const calls=t.calls_detail||[];
+  const tu=t.usage||{};const U=(t.usage||t.model||x.st=='run')?[['model',esc(t.model||'?')],['window',kf(t.ctx_window)],['peak context',kf(t.ctx_max)],['requests',fmt(t.requests)],['cache · read',kf(tu.cache_read)],['cache · write',kf(tu.cache_write)],['new input',kf(tu.input)],['model output',kf(tu.output)]]:null;
+  const q4=a=>`<div class="q4">${a.map(([k,v])=>`<div><span class="cap">${k}</span><b title="${v}">${v}</b></div>`).join('')}</div>`;
+  const det=op?`<tr class="det"><td colspan="10"><div class="dx">
+   ${U?`<div class="h2"><div><div class="sh"><span class="cap">Model and context</span></div>${q4(U.slice(0,4))}</div><div><div class="sh"><span class="cap">Tokens per task</span></div>${q4(U.slice(4))}</div></div>`:''}
+   <div class="h2 band"><div><div class="sh"><span class="cap">Prompt</span></div><div class="txtc" data-s="p:${esc(key)}">${md(t.prompt||t.scenario)}</div></div>
+    <div><div class="sh"><span class="cap">${t.answer?'Agent answer':'Error'}</span></div><div class="txtc" data-s="a:${esc(key)}">${t.answer||t.error?md(t.answer||t.error):'<p style="color:var(--mut)">none yet</p>'}</div></div></div>
+   <div class="band">${calls.length?`<div class="cr hd h2"><div class="l"><span>#</span><span>tool · ${calls.length}</span><span>arguments</span></div><div class="r"><span class="n">s</span><span>outcome</span></div></div>
+    ${calls.map((c,i)=>`<div class="cr h2"><div class="l"><span>${pad(i+1)}</span><b>${esc(c.tool)}</b><span class="a">${esc(c.input)}</span></div><div class="r"><span class="n">${c.dur??''}</span><span class="a">${c.error?tag('error','var(--err)')+' ':''}${esc((c.out||'').slice(0,200))}</span></div></div>`).join('')}`:'<div class="empty">no tool calls</div>'}</div>
+   </div>   </td></tr>`:'';
+  return `<tr class="row ${op?'open':''}" data-k="${esc(key)}" onclick="toggle('${key.replace(/'/g,'')}',this)"><td class="arr">${op?'−':'+'}</td>
+   <td class="txt"><div>${esc(plain(t.prompt||t.scenario||t.id))}</div></td><td>${cond?tag(cond,ccol(cond)):''}</td>
+   <td>${tag(STATE[x.st],stc)}</td><td>${x.st=='done'?tag(x.res,RES[x.res]||'var(--run)'):''}</td>
+   <td class="n">${pad(x.w||t.worker||0)}</td><td class="n">${x.st=='run'?mmss(now-x.since):mmss(t.time_s)}</td><td class="n">${fmt(t.calls)}</td><td class="n">${ctx}</td>
+   <td class="txt"><div>${esc(plain(t.answer||t.error||t.comment))}</div></td></tr>${det}`}).join(''):`<tr><td colspan="10" class="empty">no tasks</td></tr>`);
+ TB.querySelectorAll('[data-s]').forEach(e=>{if(inner[e.dataset.s])e.scrollTop=inner[e.dataset.s]});
+ if(anc){const r=[...TB.querySelectorAll('tr.row')].find(r=>r.dataset.k===anc.k);if(r){const d=r.getBoundingClientRect().top-anc.top;if(Math.abs(d)>0.5)window.scrollBy(0,d)}}
+}
+const OPEN_ALL=new URLSearchParams(location.search).get('open')==='all';  // ?open=all: all rows expanded (video recording)
+tick();setInterval(tick,1000);
+</script></body></html>

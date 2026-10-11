@@ -1,0 +1,241 @@
+{
+ "next_id": 31,
+ "notes": [
+  {
+   "id": 1,
+   "text": "Buy oat milk and coffee beans",
+   "tags": [
+    "shopping"
+   ],
+   "done": false
+  },
+  {
+   "id": 2,
+   "text": "Dentist appointment on Friday 10:30",
+   "tags": [],
+   "done": true
+  },
+  {
+   "id": 3,
+   "text": "Renew passport",
+   "tags": [
+    "old"
+   ],
+   "done": false
+  },
+  {
+   "id": 4,
+   "text": "Draft the quarterly report",
+   "tags": [
+    "work"
+   ],
+   "done": true
+  },
+  {
+   "id": 5,
+   "text": "Return the library books",
+   "tags": [
+    "old"
+   ],
+   "done": false
+  },
+  {
+   "id": 6,
+   "text": "Book flights for the conference",
+   "tags": [
+    "work",
+    "travel"
+   ],
+   "done": false
+  },
+  {
+   "id": 7,
+   "text": "Fix the bike's back brake",
+   "tags": [
+    "old",
+    "home"
+   ],
+   "done": true
+  },
+  {
+   "id": 8,
+   "text": "Water the plants",
+   "tags": [
+    "home"
+   ],
+   "done": false
+  },
+  {
+   "id": 9,
+   "text": "Prepare slides for Monday standup",
+   "tags": [
+    "work"
+   ],
+   "done": true
+  },
+  {
+   "id": 10,
+   "text": "Call the insurance company",
+   "tags": [],
+   "done": false
+  },
+  {
+   "id": 11,
+   "text": "Pick up dry cleaning",
+   "tags": [
+    "errands"
+   ],
+   "done": true
+  },
+  {
+   "id": 12,
+   "text": "Send birthday card to Anna",
+   "tags": [
+    "family"
+   ],
+   "done": true
+  },
+  {
+   "id": 13,
+   "text": "Clean out the garage",
+   "tags": [
+    "home",
+    "old"
+   ],
+   "done": false
+  },
+  {
+   "id": 14,
+   "text": "Review pull request #142",
+   "tags": [
+    "work"
+   ],
+   "done": false
+  },
+  {
+   "id": 15,
+   "text": "Order new running shoes",
+   "tags": [
+    "shopping"
+   ],
+   "done": true
+  },
+  {
+   "id": 16,
+   "text": "Pay the electricity bill",
+   "tags": [
+    "bills"
+   ],
+   "done": false
+  },
+  {
+   "id": 17,
+   "text": "Schedule car service",
+   "tags": [
+    "errands"
+   ],
+   "done": false
+  },
+  {
+   "id": 18,
+   "text": "Read chapter 4 of the design book",
+   "tags": [],
+   "done": false
+  },
+  {
+   "id": 19,
+   "text": "Update the team wiki page",
+   "tags": [
+    "work",
+    "old"
+   ],
+   "done": false
+  },
+  {
+   "id": 20,
+   "text": "Buy a gift for the housewarming",
+   "tags": [
+    "shopping"
+   ],
+   "done": false
+  },
+  {
+   "id": 21,
+   "text": "Cancel the unused gym membership",
+   "tags": [
+    "bills",
+    "old"
+   ],
+   "done": false
+  },
+  {
+   "id": 22,
+   "text": "Plan the weekend hike",
+   "tags": [
+    "travel"
+   ],
+   "done": true
+  },
+  {
+   "id": 23,
+   "text": "Back up the laptop",
+   "tags": [
+    "home"
+   ],
+   "done": false
+  },
+  {
+   "id": 24,
+   "text": "Write thank-you note to the mentor",
+   "tags": [],
+   "done": false
+  },
+  {
+   "id": 25,
+   "text": "Sort the photo archive",
+   "tags": [
+    "home",
+    "old"
+   ],
+   "done": true
+  },
+  {
+   "id": 26,
+   "text": "Check visa requirements for the trip",
+   "tags": [
+    "travel"
+   ],
+   "done": true
+  },
+  {
+   "id": 27,
+   "text": "Refill the prescription",
+   "tags": [],
+   "done": false
+  },
+  {
+   "id": 28,
+   "text": "Clear the inbox",
+   "tags": [
+    "work"
+   ],
+   "done": false
+  },
+  {
+   "id": 29,
+   "text": "Donate old clothes",
+   "tags": [
+    "old"
+   ],
+   "done": true
+  },
+  {
+   "id": 30,
+   "text": "Set up the new router",
+   "tags": [
+    "home"
+   ],
+   "done": false
+  }
+ ]
+}
