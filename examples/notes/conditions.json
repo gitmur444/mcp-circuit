@@ -16,5 +16,12 @@
   "env": {
    "MCP_STYLE": "good"
   }
+ },
+ "forms-mcp": {
+  "desc": "focused tools that ask the human via MCP forms (elicitation)",
+  "server": "mcp",
+  "env": {
+   "MCP_STYLE": "forms"
+  }
  }
 }

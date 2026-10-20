@@ -1,0 +1,99 @@
+[
+ {
+  "name": "Delete old notes, then add one: two turns, two kinds of forms",
+  "cond": "forms-mcp",
+  "template": "seeded",
+  "steps": [
+   {
+    "prompt": "Delete every note tagged \"old\".",
+    "check": [
+     {
+      "tag": "old",
+      "count": 0
+     }
+    ]
+   },
+   {
+    "prompt": "Now add a note \"Call mom\". Don't choose tags yourself.",
+    "check": [
+     {
+      "note": "Call mom",
+      "tags": [
+       "family"
+      ]
+     }
+    ]
+   }
+  ],
+  "answers": [
+   {
+    "match": "^Delete note",
+    "keys": [
+     "enter"
+    ]
+   },
+   {
+    "match": "Which tag",
+    "keys": [
+     "down",
+     "down",
+     "enter"
+    ]
+   }
+  ],
+  "expect_forms": [
+   "^Delete note",
+   "Which tag"
+  ]
+ },
+ {
+  "name": "Close, clean up, report: forms in the middle of a chain of calls",
+  "cond": "forms-mcp",
+  "template": "seeded",
+  "prompt": "Tidy up the notes tagged \"old\": first mark every open one as done, then delete all of them. Finally add a note \"Cleanup report\" listing what was deleted (don't choose its tags yourself).",
+  "answers": [
+   {
+    "match": "Renew passport",
+    "keys": [
+     "down",
+     "enter"
+    ]
+   },
+   {
+    "match": "^Delete note",
+    "keys": [
+     "enter"
+    ]
+   },
+   {
+    "match": "Which tag",
+    "keys": [
+     "down",
+     "enter"
+    ]
+   }
+  ],
+  "expect_forms": [
+   "^Delete note",
+   "Which tag"
+  ],
+  "check": [
+   {
+    "tag": "old",
+    "count": 1
+   },
+   {
+    "note": "Renew passport",
+    "tags": [
+     "old"
+    ]
+   },
+   {
+    "note": "Cleanup report",
+    "tags": [
+     "work"
+    ]
+   }
+  ]
+ }
+]

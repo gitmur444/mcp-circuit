@@ -146,16 +146,20 @@ class Slot:
             st = _load_state(); st[self.i] = pid; _save_state(st)
 
     def ready(self):
+        if not TARGET.has_app:
+            return True
         try:
             return TARGET.ready(self.i)
         except Exception:  # noqa: BLE001 — not up yet
             return False
 
     def alive(self):
+        if not TARGET.has_app:
+            return True
         return bool(self.pid) and self.pid in _pids()
 
     def stop(self):
-        if self.alive():
+        if TARGET.has_app and self.alive():
             subprocess.run(["kill", str(self.pid)])
             for _ in range(30):
                 if not self.alive():
@@ -170,6 +174,9 @@ class Slot:
     def start(self, template=None, worker_tpl=None):
         """Fresh profile from template (folder in the project templates/, default from project.json) → launch → wait until ready.
         Returns seconds."""
+        if not TARGET.has_app:  # remote target (e.g. a public API): nothing to start
+            _set_label(self.i, {"profile": None, "template": worker_tpl})
+            return 0
         self.stop()
         # a stray instance (not in pool.json) may hold the slot port; it would answer instead of the new one
         held = _listeners(self.port)
@@ -210,6 +217,8 @@ class Slot:
         raise RuntimeError(f"slot {self.i}: not loaded within {READY_TIMEOUT} s")
 
     def place(self):
+        if not TARGET.has_app:
+            return
         """3x2 tiling over the layout region; the adapter moves the window."""
         x0, y0, x1, y1 = _region(get_layout())
         x0, y0, x1, y1 = x0 + MARGIN, y0 + MARGIN, x1 - MARGIN, y1 - MARGIN

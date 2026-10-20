@@ -38,7 +38,7 @@ class Target(TargetBase):
     def agent_env(self, url_host, port, workdir):
         return {"NOTES_URL": f"http://{url_host}:{port}"}
 
-    def check(self, i, spec):
+    def check(self, i, spec, answer=None):
         """Task check: list of {"note": substring, "done"?, "tags"?} (such a note exists) or {"tag", "count"} (that many notes)."""
         notes = all_notes(self.port(i))
         for c in spec:

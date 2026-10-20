@@ -96,7 +96,7 @@ def dashboard():
             if listening(PORT):
                 break
             time.sleep(0.25)
-    webbrowser.open(f"http://localhost:{PORT}/v2")
+    webbrowser.open(f"http://localhost:{PORT}")
 
 
 def summary(results):
@@ -117,7 +117,7 @@ def demo():
         sys.exit("\nfix the items above and run ./circuit demo again")
     print("\nDemo: 2 tasks × 3 conditions (no MCP / raw MCP / good MCP) on 6 Notes app workers.", flush=True)
     dashboard()
-    print(f"dashboard: http://localhost:{PORT}/v2\n", flush=True)
+    print(f"dashboard: http://localhost:{PORT}\n", flush=True)
     r = subprocess.run([sys.executable, os.path.join(HERE, "run.py"), "--file", os.path.join(DEMO, "tasks", "demo.json")])
     runs = sorted(os.listdir(os.path.join(DEMO, "out", "runs")))
     if r.returncode == 0 and runs:
@@ -145,7 +145,7 @@ def main():
     elif cmd == "run":
         sys.exit(subprocess.run([sys.executable, os.path.join(HERE, "run.py")] + args).returncode)
     elif cmd == "dashboard":
-        dashboard(); print(f"http://localhost:{PORT}/v2")
+        dashboard(); print(f"http://localhost:{PORT}")
     elif cmd == "init" and args:
         init(args[0])
     else:

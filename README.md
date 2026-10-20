@@ -59,6 +59,24 @@ A project folder holds everything app-specific:
 | `templates/<name>/` | profile folders copied into a worker before each start (saves, databases, configs) |
 | `tasks/*.json` | `[{"prompt", "cond", "template"?, "check"?, "repeat"?, "worker"?}]` |
 
+### Multi-step scenarios and MCP forms
+
+A task can be a conversation instead of one prompt, and the runner plays the human for MCP forms (elicitation):
+
+```json
+{"name": "Delete old notes, then add one", "cond": "forms-mcp", "template": "seeded",
+ "steps": [{"prompt": "Delete every note tagged \"old\".", "check": [{"tag": "old", "count": 0}]},
+           {"prompt": "Now add a note \"Call mom\".",   "check": [{"note": "Call mom", "tags": ["family"]}]}],
+ "answers": [{"match": "^Delete note", "keys": ["enter"]},
+             {"match": "Which tag", "keys": ["down", "down", "enter"]}],
+ "expect_forms": ["^Delete note", "Which tag"]}
+```
+
+- `steps` — turns of one conversation in one container (`claude -p --continue`); a step's `check` is a checkpoint, a failed one ends the scenario.
+- `answers` — how the human answers forms, first `match` (regex on the form text) wins. `keys` — what they press, as in Claude Code: up/down move the ❯ cursor in a list (starts on the default), enter picks and goes to the next field (the last one submits), `type:text` types, tab skips, esc cancels. Or set values directly: `content`, `pick` (enum option by regex), `action`: `decline`/`cancel`. `once` — only the first such form. A form without a rule is declined and fails the scenario.
+- `expect_forms` — forms that must have been shown.
+- The dashboard shows the scenario as a conversation: prompt → the agent's form (rendered like in Claude Code) → our keys → … → the agent's answer. Example: `examples/notes/tasks/forms.json`.
+
 Desktop apps work too: `place()` tiles worker windows 3×2 (`./circuit layout tile|video`).
 
 ## Commands
@@ -68,7 +86,7 @@ Desktop apps work too: `place()` tiles worker windows 3×2 (`./circuit layout ti
 | `./circuit demo` | setup check, image build, demo run, dashboard |
 | `./circuit run --file tasks.json` | run a task set; `--cond X --repeat 3 "prompt"` for ad-hoc tasks, `--hold` to start agents from the dashboard |
 | `./circuit up [N]` / `down` / `status` | app workers |
-| `./circuit dashboard` | http://localhost:8765/v2 |
+| `./circuit dashboard` | http://localhost:8765 |
 
 ## License
 

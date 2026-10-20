@@ -12,7 +12,8 @@ Its project.json:
    "mcp_name": "app",                  # MCP server name in the agent config (tool prefix mcp__<name>__ is stripped in logs)
    "prompt_note": "...{port}...",      # appended to every prompt; {port} = app port as seen from the container
    "image": "mcp-circuit", "ready_timeout": 400,
-   "stagger": {"seconds": 12, "from": 4}}   # optional: space out starts of heavy apps
+   "stagger": {"seconds": 12, "from": 4},   # optional: space out starts of heavy apps
+   "tasks": ["../scenarios"]}               # optional: folders of task sets for the dashboard "Warm up" (default tasks/, out/demo)
 Next to it: conditions.json, worker_templates.json (optional), tasks/ (task sets), out/ (runs, dashboard state).
 """
 import importlib.util, json, os
@@ -37,7 +38,7 @@ HOMES = os.path.expanduser(CFG.get("homes") or f"/tmp/mcp-circuit/{os.path.basen
 TEMPLATES = os.path.join(DIR, CFG.get("templates", "templates"))
 CONDITIONS = os.path.join(DIR, "conditions.json")
 WORKER_TEMPLATES = os.path.join(DIR, "worker_templates.json")
-TASKS = [os.path.join(DIR, "tasks"), os.path.join(OUT, "demo")]  # task sets for the dashboard "Warm up"
+TASKS = [os.path.abspath(os.path.join(DIR, os.path.expanduser(p))) for p in CFG.get("tasks", [])] or [os.path.join(DIR, "tasks"), os.path.join(OUT, "demo")]  # task sets for the dashboard "Warm up"
 
 
 def path(p):
@@ -46,7 +47,9 @@ def path(p):
 
 
 class TargetBase:
-    """Adapter interface. Slot i = one app instance on port port(i), own profile folder `home`."""
+    """Adapter interface. Slot i = one app instance on port port(i), own profile folder `home`.
+    has_app = False: nothing to launch (the target is remote, e.g. a public API); only check() matters."""
+    has_app = True
 
     def __init__(self, cfg):
         self.cfg = cfg
@@ -57,6 +60,8 @@ class TargetBase:
 
     def pids(self):
         """PIDs of all running instances of the app (the pool finds a new instance as the new pid)."""
+        if not self.has_app:
+            return set()
         raise NotImplementedError
 
     def launch(self, i, home):
@@ -78,8 +83,9 @@ class TargetBase:
         """Env for the MCP server inside the container: how to reach the app at url_host:port."""
         return {}
 
-    def check(self, i, spec):
-        """Optional: was the task solved? `spec` is the task's "check" field; return True/False. None = can't tell."""
+    def check(self, i, spec, answer=None):
+        """Optional: was the task solved? `spec` is the task's "check" field, `answer` the agent's final text.
+        Return True/False; None = can't tell."""
         return None
 
 

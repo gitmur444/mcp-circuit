@@ -1,0 +1,6 @@
+{
+ "github-mcp": {"desc": "official GitHub MCP server, read-only", "mcp": {
+   "type": "http", "url": "https://api.githubcopilot.com/mcp/",
+   "headers": {"Authorization": "Bearer ${GITHUB_MCP_TOKEN}", "X-MCP-Readonly": "true"}}},
+ "none": {"desc": "no MCP: curl / git against public GitHub", "server": null}
+}

@@ -1,0 +1,8 @@
+{
+ "name": "GitHub get_commit",
+ "title": "GITHUB MCP · get_commit",
+ "target": "target.py",
+ "workspace": null,
+ "mcp_name": "github",
+ "prompt_note": "\n\nAnswer with the exact values asked for."
+}

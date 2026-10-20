@@ -50,7 +50,7 @@ def slots():
         if time.time() - _slots_cache["t"] > 2:
             alive = pool._pids()
             st, lb = pool._load_state(), pool.labels()
-            _slots_cache["data"] = [{"slot": i, "port": pool.TARGET.port(i), "pid": st.get(i), "alive": st.get(i) in alive, "ready": None, "fps": None,
+            _slots_cache["data"] = [{"slot": i, "port": pool.TARGET.port(i), "pid": st.get(i), "alive": st.get(i) in alive or not pool.TARGET.has_app, "ready": None, "fps": None,
                                      "label": lb.get(i)}
                                     for i in range(1, 7)]
             _slots_cache["t"] = time.time()
@@ -139,137 +139,6 @@ class Demo:
 
     def state(self):
         return {k: v for k, v in self.st.items()}
-
-
-PAGE = r"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MCP Circuit</title><style>
-:root{--bg:#f4f5f8;--card:#fff;--ink:#1d2330;--mut:#6b7385;--line:#e3e6ec;
---ok:#1f9d55;--ok-bg:#e7f6ed;--ok-bd:#bfe6cd;--run:#3b6fd8;--run-bg:#e9f0fd;--run-bd:#c3d4f7;--off:#c24b4b;--off-bg:#fbeeee;--off-bd:#f0cccc;
---warn:#d98a00;--vio:#7b61c9;--boot:#c98a12;--boot-bg:#fff6e2;--boot-bd:#f1dcaa;--gray:#9aa1b0;--shadow:0 1px 2px rgba(20,30,50,.06),0 4px 14px rgba(20,30,50,.05)}
-@media (prefers-color-scheme:dark){:root{--bg:#11141a;--card:#1a1f28;--ink:#e6e9ef;--mut:#8a93a6;--line:#2a313d;
---ok-bg:#16291f;--ok-bd:#22533a;--run-bg:#17223a;--run-bd:#2b4475;--off-bg:#2c1a1c;--off-bd:#5a2d31;--boot-bg:#2f2614;--boot-bd:#5f4b1f;--gray:#5d6575;--shadow:none}}
-*{box-sizing:border-box}html,body{overflow-x:hidden}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,system-ui,sans-serif}
-header{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap;padding:18px 24px 6px}
-h1{font-size:19px;margin:0;letter-spacing:-.01em}h2{font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--mut);margin:0 0 10px;font-weight:600}
-.mut{color:var(--mut)}
-.layout{max-width:1800px;display:grid;grid-template-columns:minmax(0,1fr);gap:16px;padding:14px 24px 28px}aside{order:-1}
-@media (max-width:900px){.layout{grid-template-columns:1fr}aside{order:-1}}
-main{display:grid;gap:22px;min-width:0}main>section{min-width:0}
-.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
-.w{border-radius:12px;padding:12px 14px;border:1px solid;min-height:118px;box-shadow:var(--shadow);transition:background .3s,border-color .3s;display:flex;flex-direction:column;gap:4px}
-.w.idle{background:var(--ok-bg);border-color:var(--ok-bd)}.w.busy{background:var(--run-bg);border-color:var(--run-bd)}.w.off{background:var(--off-bg);border-color:var(--off-bd)}.w.boot{background:var(--boot-bg);border-color:var(--boot-bd)}
-.w .top{display:flex;justify-content:space-between;align-items:center;gap:8px}.w .name{font-weight:650;white-space:nowrap}
-.dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:6px}
-.idle .dot{background:var(--ok)}.busy .dot{background:var(--run);animation:pulse 1.4s infinite}.off .dot{background:var(--off)}.boot .dot{background:var(--boot);animation:pulse 1.4s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
-.w .st{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.idle .st{color:var(--ok)}.busy .st{color:var(--run)}.off .st{color:var(--off)}.boot .st{color:var(--boot)}.w.boot .bar{background:rgba(201,138,18,.2)}.w.boot .bar i{background:var(--boot)}
-.w .task{font-weight:500;word-break:break-word}.w .meta{font-size:12px;color:var(--mut)}
-.w .bar{height:3px;border-radius:2px;background:rgba(59,111,216,.18);margin-top:auto;overflow:hidden}.w .bar i{display:block;height:100%;background:var(--run)}
-aside{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 18px;box-shadow:var(--shadow);display:flex;flex-wrap:wrap;align-items:center;gap:12px 32px}aside>div{display:flex;align-items:center;gap:10px}aside h2{margin:0}aside .note{margin:0;min-height:0}aside .seg{width:240px}aside .reset{width:auto;padding-left:14px;padding-right:14px}aside .kv{display:flex;flex-wrap:wrap;gap:6px 12px}aside .kv .b{display:none}aside .kv>span:not(.lbl):not(.b){display:none}aside .prog{width:160px}aside .big{font-size:22px}aside .push{margin-left:auto}
-.run{font-weight:600}.big{font-size:30px;font-weight:700;letter-spacing:-.02em}
-.prog{height:8px;border-radius:4px;background:var(--line);overflow:hidden;display:flex}.prog i{display:block;height:100%}
-.kv{display:grid;grid-template-columns:auto 1fr auto;gap:8px 10px;align-items:center}
-.kv .b{height:6px;border-radius:3px;background:var(--line);overflow:hidden}.kv .b i{display:block;height:100%}
-.lbl{display:inline-block;padding:1px 8px;border-radius:999px;font-size:12px;font-weight:600;color:#fff;white-space:nowrap}
-table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
-th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;font-variant-numeric:tabular-nums;vertical-align:top}
-th{color:var(--mut);font-weight:500;font-size:12px}.wrap{overflow-x:auto}td.txt{font-size:13px;line-height:1.45;max-width:340px;min-width:220px}td.txt div{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.pair{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}@media(max-width:900px){.pair{grid-template-columns:1fr}}.card2{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;font-size:13px;line-height:1.55;max-height:360px;overflow:auto}.card2 h3{margin:0 0 8px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}.card2 p{margin:0 0 8px}.card2 ol,.card2 ul{margin:0 0 8px;padding-left:20px}.card2 li{margin:2px 0}
-.demo{margin:8px 24px 0;padding:10px 14px;border-radius:10px;background:#fff4dc;border:1px solid #f1d38f;color:#7a5200;font-weight:600}
-@media (prefers-color-scheme:dark){.demo{background:#3a2e14;border-color:#6b5420;color:#f1d38f}}
-.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--line);border-radius:10px;padding:3px;gap:3px}
-.seg button{border:0;border-radius:8px;padding:7px 6px;font:inherit;font-size:13px;background:transparent;color:var(--mut);cursor:pointer}
-.seg button.on{background:var(--card);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.12)}
-.seg button:disabled{cursor:wait;opacity:.6}.note{font-size:12px;color:var(--mut);margin-top:6px;min-height:16px}
-tr.row{cursor:pointer}tr.row:hover td{background:rgba(59,111,216,.04)}td.arr{width:14px;padding-right:0;color:var(--mut)}td.arr::before{content:"▸"}tr.row.open td.arr::before{content:"▾"}
-tr.det td{background:var(--bg);padding:10px 14px 14px}.calls{width:100%;border:0;box-shadow:none;background:transparent}.calls td,.calls th{border-bottom:1px solid var(--line);padding:4px 8px;font-size:12px}
-.calls .args{font-family:ui-monospace,Menlo,monospace;color:var(--mut);word-break:break-all;max-width:620px}.ans{white-space:pre-wrap;font-size:13px;margin-top:10px;max-height:320px;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px}
-.reset{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--off-bd);background:var(--off-bg);color:var(--off);
- border-radius:10px;padding:8px 10px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:filter .15s,transform .05s}
-.reset:hover{filter:brightness(.97)}.reset:active{transform:translateY(1px)}.reset:disabled{opacity:.5;cursor:not-allowed}
-.reset svg{width:15px;height:15px}.confirm{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.confirm .yes{background:var(--off);color:#fff;border-color:var(--off)}.confirm .no{background:var(--card);color:var(--ink);border-color:var(--line)}
-.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}.filters button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:3px 11px;cursor:pointer;font:inherit;font-size:13px}
-.filters button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-header,.demo{max-width:1800px}</style></head><body>
-<header><h1>MCP Circuit</h1><span id="meta" class="mut"></span></header>
-<div id="demo" class="demo" hidden>Demo: synthetic data, no apps running; this is what a run looks like. Real run: dashboard.py without --demo.</div>
-<div class="layout">
-<main>
-<section><h2>Workers</h2><div id="workers" class="grid"></div></section>
-<section><h2>Tasks</h2><div id="filters" class="filters"></div><div class="wrap"><table id="tasks"></table></div></section>
-</main>
-<aside id="side"></aside>
-</div><script>
-const N=6;
-const STATE={wait:['waiting','var(--gray)'],run:['running','var(--run)'],done:['finished','var(--ink)']};
-const RES={ok:'var(--ok)',answered:'#2a9d8f',done:'#2a9d8f',fail:'var(--off)',error:'var(--warn)','error+reload':'var(--warn)',reload:'var(--vio)',timeout:'var(--off)',hang:'var(--off)',crash:'var(--off)',skip:'var(--gray)',boot:'var(--gray)'};
-const CC={none:'#c9774f',prod:'#7b61c9',sandbox:'#2a9d8f'};const PAL=['#5b7fc7','#c2185b','#8a6d3b','#2e7d32','#6a5acd','#d2691e','#00838f','#9c4f96'];
-const ccol=c=>{if(CC[c])return CC[c];let h=0;for(const ch of c)h=(h*31+ch.charCodeAt(0))>>>0;return PAL[h%PAL.length]};
-const PH={boot:'starting app',agent:'working',oracle:'checking',idle:'idle'};
-const lbl=(t,c)=>`<span class="lbl" style="background:${c}">${t}</span>`;
-const res=r=>r?lbl(r,RES[r]||'var(--run)'):'';
-const fmt=(v,d=0)=>v==null?'—':Number(v).toLocaleString('en-US',{maximumFractionDigits:d});
-const kf=n=>n==null?'—':n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e3?Math.round(n/1e3)+'k':String(n);
-const ctxs=t=>t.ctx_max?`<b>${(100*t.ctx_max/(t.ctx_window||1e6)).toFixed(1)}%</b>`:'—';
-const esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-const inl=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/`([^`]+)`/g,'<code>$1</code>');
-const md=s=>{const out=[];let l=null;for(const raw of String(s||'').split('\n')){const x=raw.trim();const m=x.match(/^(\d+[.)]|[-*•])\s+(.*)/);
- if(m){const t=/\d/.test(m[1])?'ol':'ul';if(l!==t){if(l)out.push(`</${l}>`);out.push(`<${t}>`);l=t}out.push(`<li>${inl(m[2])}</li>`);continue}
- if(l){out.push(`</${l}>`);l=null}if(x)out.push(`<p>${inl(x)}</p>`)}if(l)out.push(`</${l}>`);return out.join('')};
-const plain=s=>String(s||'').replace(/\*\*|`/g,'').replace(/\s+/g,' ').trim();
-const opened=new Set();let confirmReset=false,resetNote='';
-async function doReset(){confirmReset=false;try{const r=await fetch('/api/reset',{method:'POST'});resetNote=(await r.json()).message}catch(e){resetNote='dashboard unreachable'}opened.clear();tick()}
-function toggle(k){opened.has(k)?opened.delete(k):opened.add(k);tick()}
-let filter='all',layout='tile',note='',moving=false;
-async function setLayout(m){if(moving||m===layout)return;moving=true;note='moving windows…';tick();
- try{const r=await fetch('/api/layout?mode='+m,{method:'POST'});const j=await r.json();layout=j.layout;note=r.ok?'windows moved':j.message}catch(e){note='dashboard unreachable'}
- moving=false;tick()}
-async function tick(){
- let d;try{d=await (await fetch('/api/state')).json()}catch(e){document.getElementById('meta').textContent='dashboard.py unreachable';return}
- document.getElementById('demo').hidden=!d.demo;
- const now=Date.now()/1000,r=d.runner||{queue:[],workers:[],done:[],run:'—',started:now};
- layout=d.layout||layout;
- const online={};(d.slots||[]).forEach(s=>online[s.slot]=s.alive);
- const ws={};(r.workers||[]).forEach(w=>ws[w.id]=w);
- document.getElementById('meta').textContent=r.run==='—'?'no run':`updated ${new Date().toLocaleTimeString('en-US')}`;
- document.getElementById('workers').innerHTML=[...Array(N)].map((_,k)=>{const id=k+1,w=ws[id],on=!!online[id],busy=!!(w&&w.job);
-  const cls=busy?(w.phase==='boot'?'boot':'busy'):on?'idle':'off',el=w?now-w.since:0;
-  const st=busy?(PH[w.phase]||w.phase):on?'idle':'offline';
-  return `<div class="w ${cls}"><div class="top"><span class="name"><span class="dot"></span>worker ${id}</span><span class="st">${st}</span></div>
-  ${busy?`<div class="task">${esc(w.job.scenario||w.job.id)}</div>
-   <div class="meta">${w.job.condition&&w.job.condition!=='?'?lbl(w.job.condition,ccol(w.job.condition))+' ':''}${fmt(el)} s</div>
-   <div class="bar"><i style="width:${Math.min(100,el/1.2)}%"></i></div>`
-   :`<div class="meta">${on?'waiting for task':'app not running'}</div>`}</div>`}).join('');
- const rows=[];
- (r.workers||[]).filter(w=>w.job).forEach(w=>rows.push({st:'run',t:w.job,w:w.id,since:w.since}));
- (r.queue||[]).forEach(t=>rows.push({st:'wait',t}));
- [...(r.done||[])].reverse().forEach(t=>rows.push({st:'done',t,res:t.result||t.condition}));
- const cnt={wait:0,run:0,done:0},rc={};rows.forEach(x=>{cnt[x.st]++;if(x.st=='done')rc[x.res]=(rc[x.res]||0)+1});
- const active=r.run!=='—'&&!/\(/.test(r.run);const total=rows.length||1,pct=Math.round(100*cnt.done/total),rmax=Math.max(1,...Object.values(rc));
- const segs=`<div class="seg">${[['tile','Full screen'],['video','Video 16:9']].map(([k,t])=>`<button class="${layout==k?'on':''}" ${moving?'disabled':''} onclick="setLayout('${k}')">${t}</button>`).join('')}</div>`;
- const rst=confirmReset?`<div class="confirm"><button class="reset yes" onclick="doReset()">Yes, clear</button><button class="reset no" onclick="confirmReset=false;tick()">Cancel</button></div>`
-   :`<button class="reset" ${active?'disabled title="run in progress"':''} onclick="confirmReset=true;resetNote='';tick()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg>Clear dashboard</button>`;
- document.getElementById('side').innerHTML=`
-  <div><div><div class="run">${esc(r.run)}</div><div class="mut">${r.run==='—'?'':active?`running ${fmt((now-r.started)/60,1)} min`:`ran ${fmt(((r.updated||now)-r.started)/60,1)} min`}</div></div></div>
-  <div><span class="big">${pct}%</span><div><div class="prog"><i style="width:${100*cnt.done/total}%;background:var(--ink)"></i><i style="width:${100*cnt.run/total}%;background:var(--run)"></i></div><div class="mut" style="font-size:12px;margin-top:4px">done ${cnt.done} of ${rows.length}</div></div></div>
-  <div><div class="kv">${['wait','run','done'].map(k=>`${lbl(STATE[k][0]+' '+cnt[k],STATE[k][1])}`).join('')}</div></div>
-  <div><div class="kv">${Object.keys(rc).length?Object.entries(rc).sort((a,b)=>b[1]-a[1]).map(([k,v])=>lbl(k+' '+v,RES[k]||'var(--run)')).join(''):''}</div></div>
-  <div class="push"><h2>App windows</h2>${segs}${note?`<span class="note">${esc(note)}</span>`:''}</div>
-  <div>${rst}${resetNote?`<span class="note">${esc(resetNote)}</span>`:''}</div>`;
- const keys=['all','wait','run','done',...Object.keys(rc).filter(k=>!STATE[k])];
- document.getElementById('filters').innerHTML=keys.map(k=>`<button class="${filter==k?'on':''}" onclick="filter='${k}';tick()">${k=='all'?'all':STATE[k]?STATE[k][0]:k}</button>`).join('');
- const vis=rows.filter(x=>filter=='all'||x.st==filter||(x.st=='done'&&x.res==filter));
- document.getElementById('tasks').innerHTML='<tr><th></th><th>prompt</th><th>condition</th><th>state</th><th>result</th><th>worker</th><th>time, s</th><th>tool calls</th><th>ctx</th><th>answer / error</th></tr>'+
-  vis.map(x=>{const t=x.t;const cond=t.condition&&!['?',x.res].includes(t.condition)?t.condition:'';const key=x.st+':'+(t.id||t.scenario);const op=opened.has(key);
-   const calls=(t.calls_detail||[]);
-   const det=op?`<tr class="det"><td colspan="10"><div class="pair"><div class="card2"><h3>Prompt</h3>${md(t.prompt||t.scenario)}</div><div class="card2"><h3>${t.answer?'Agent answer':'Error'}</h3>${t.answer||t.error?md(t.answer||t.error):'<p class="mut">none yet</p>'}</div></div>${calls.length?`<table class="calls"><tr><th>#</th><th>tool</th><th>arguments</th><th>s</th><th>outcome</th></tr>${calls.map((c,i)=>`<tr><td>${i+1}</td><td><b>${esc(c.tool)}</b></td><td class="args">${esc(c.input)}</td><td>${c.dur??''}</td><td>${c.error?lbl('error','var(--off)'):''} <span class="args">${esc((c.out||'').slice(0,160))}</span></td></tr>`).join('')}</table>`:'<span class="mut">no tool calls</span>'}
-     ${t.usage?`<div class="mut" style="margin-top:8px;font-size:12px">model <b>${esc(t.model||'?')}</b> · window ${kf(t.ctx_window)} · peak context ${kf(t.ctx_max)} · over all ${t.requests} requests: cache read ${kf(t.usage.cache_read)}, cache write ${kf(t.usage.cache_write)}, new input ${kf(t.usage.input)}, model output ${kf(t.usage.output)}</div>`:''}
-     </td></tr>`:'';
-   return `<tr class="row ${op?'open':''}" onclick="toggle('${key.replace(/'/g,'')}')"><td class="arr"></td><td class="txt"><div>${esc(plain(t.prompt||t.scenario||t.id))}</div></td><td>${cond?lbl(cond,ccol(cond)):''}</td><td>${lbl(STATE[x.st][0],STATE[x.st][1])}</td><td>${x.st=='done'?res(x.res):''}</td>
-   <td>${x.w||t.worker||''}</td><td>${x.st=='run'?fmt(now-x.since):fmt(t.time_s,2)}</td><td>${fmt(t.calls)}</td><td>${ctxs(t)}</td><td class="txt a"><div>${esc(plain(t.answer||t.error||t.comment))}</div></td></tr>${det}`}).join('');
-}
-tick();setInterval(tick,1500);
-</script></body></html>"""
 
 
 def keep_places(period=20):
@@ -395,6 +264,17 @@ def main():
             self.wfile.write(body)
 
         def do_GET(self):
+            try:
+                self._get()
+            except Exception as e:  # noqa: BLE001 — show the error instead of an empty reply
+                body = json.dumps({"error": f"{e.__class__.__name__}: {e}"}).encode()
+                self.send_response(500)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+
+        def _get(self):
             if self.path.startswith("/api/state"):
                 body = json.dumps({"project": {"name": project.CFG.get("name"), "title": project.CFG.get("title")}, "demo": bool(demo), "layout": pool.get_layout(), "slots": slots(), "sets": sorted({os.path.basename(x) for d in project.TASKS for x in glob.glob(os.path.join(d, "*.json"))}), "runner": demo.state() if demo else smoke_state(a.smoke_log) if a.smoke_log else runner_state()},
                                   ensure_ascii=False, default=str).encode()
@@ -404,10 +284,8 @@ def main():
                 if not os.path.isfile(f):
                     self.send_error(404); return
                 body, ctype = open(f, "rb").read(), "image/png"
-            elif self.path.startswith("/v2"):  # "technical drawing" variant, read from disk on every request
+            else:  # the page is read from disk on every request
                 body, ctype = open(os.path.join(HERE, "dashboard_v2.html"), "rb").read(), "text/html; charset=utf-8"
-            else:
-                body, ctype = PAGE.encode(), "text/html; charset=utf-8"
             self.send_response(200)
             self.send_header("Content-Type", ctype)
             self.send_header("Content-Length", str(len(body)))

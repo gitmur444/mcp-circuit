@@ -1,0 +1,116 @@
+[
+ {
+  "prompt": "Which commit does the tag v2.32.3 of psf/requests point to? Give the full 40-character SHA, the author's name and the author date (YYYY-MM-DD).",
+  "cond": "github-mcp",
+  "worker": 1,
+  "check": {
+   "all": [
+    "0e322af87745eff34caffe4df68456ebc20d9068",
+    "Nate Prewitt",
+    "2024-05-29"
+   ]
+  }
+ },
+ {
+  "prompt": "Commit eeafb6ab in psf/requests is a merge commit. Give the full SHAs of both of its parents and the number of the pull request it merges.",
+  "cond": "github-mcp",
+  "worker": 1,
+  "check": {
+   "all": [
+    "a58d7f2ffb4d00b46dca2d70a3932a0b37e22fac",
+    "a94e9b5308ffcc3d2913ab873e9810a6601a67da",
+    "6662"
+   ]
+  }
+ },
+ {
+  "prompt": "In commit a94e9b53 of psf/requests, which changed file has the most added lines, and how many lines were added to it?",
+  "cond": "github-mcp",
+  "worker": 1,
+  "check": {
+   "all": [
+    "tests/test_requests.py",
+    "135"
+   ]
+  }
+ },
+ {
+  "prompt": "Commit 1190afd1 of psf/requests adds exactly one line. Which file, and what is the exact added line (without the leading +)?",
+  "cond": "github-mcp",
+  "worker": 1,
+  "check": {
+   "all": [
+    "src/requests/models.py",
+    "hooks: dict[str, list[_t.HookType]]"
+   ]
+  }
+ },
+ {
+  "prompt": "How many files did commit 06d2a384 of psf/requests change in total, and how many lines were added across all of them?",
+  "cond": "github-mcp",
+  "worker": 1,
+  "check": {
+   "all": [
+    "64",
+    "1288"
+   ]
+  }
+ },
+ {
+  "prompt": "Which commit does the tag v2.32.3 of psf/requests point to? Give the full 40-character SHA, the author's name and the author date (YYYY-MM-DD).",
+  "cond": "none",
+  "worker": 2,
+  "check": {
+   "all": [
+    "0e322af87745eff34caffe4df68456ebc20d9068",
+    "Nate Prewitt",
+    "2024-05-29"
+   ]
+  }
+ },
+ {
+  "prompt": "Commit eeafb6ab in psf/requests is a merge commit. Give the full SHAs of both of its parents and the number of the pull request it merges.",
+  "cond": "none",
+  "worker": 2,
+  "check": {
+   "all": [
+    "a58d7f2ffb4d00b46dca2d70a3932a0b37e22fac",
+    "a94e9b5308ffcc3d2913ab873e9810a6601a67da",
+    "6662"
+   ]
+  }
+ },
+ {
+  "prompt": "In commit a94e9b53 of psf/requests, which changed file has the most added lines, and how many lines were added to it?",
+  "cond": "none",
+  "worker": 2,
+  "check": {
+   "all": [
+    "tests/test_requests.py",
+    "135"
+   ]
+  }
+ },
+ {
+  "prompt": "Commit 1190afd1 of psf/requests adds exactly one line. Which file, and what is the exact added line (without the leading +)?",
+  "cond": "none",
+  "worker": 2,
+  "check": {
+   "all": [
+    "src/requests/models.py",
+    "hooks: dict[str, list[_t.HookType]]"
+   ]
+  }
+ },
+ {
+  "prompt": "How many files did commit 06d2a384 of psf/requests change in total, and how many lines were added across all of them?",
+  "cond": "none",
+  "worker": 2,
+  "check": {
+   "all": [
+    "64",
+    "1288"
+   ]
+  }
+ }
+]

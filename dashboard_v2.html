@@ -90,6 +90,11 @@ tr.det>td{padding:0;background:var(--paper)}
 .dx .q4>div{padding:4px var(--pad) 16px}.dx .q4>div+div{border-left:1px solid var(--line)}
 .dx .q4 .cap{display:block;font-size:9.5px}.dx .q4 b{display:block;font:500 17px var(--mono);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dx .band{border-top:1px solid var(--line)}
+.dx .fq{margin-bottom:10px}.dx .ff{margin:8px 0 4px}.dx .ft{font-weight:600;margin-bottom:4px}
+.dx .fo{font-family:var(--mono);font-size:13px;padding:2px 0;color:var(--mut)}.dx .fo span{display:inline-block;width:18px;color:var(--run)}.dx .fo.on{color:var(--ink);font-weight:600}
+.dx .tl .agc .txtc{border-left:3px solid var(--run)}.dx .tl .usc .txtc{border-left:3px solid var(--ink)}.dx .tl:not(.h2)>div{padding-left:44px}.dx kbd{display:inline-block;font:600 12px var(--mono);padding:3px 8px;border:1px solid var(--mut);border-bottom-width:3px;border-radius:5px;margin:0 2px 4px 0;background:var(--paper)}
+.dx .keys{margin-bottom:8px}.dx .kres{font-size:12.5px}.dx .caret{display:inline-block;width:7px;height:14px;background:var(--ink);vertical-align:middle;margin-left:2px}
+.dx .txtc,.dx .cr .a,.dx .cr b,td.txt{user-select:text;cursor:text}
 .dx .txtc{padding:4px var(--pad) 18px;max-height:340px;overflow:auto;font-size:13.5px;line-height:1.6}
 .dx .txtc p{margin:0 0 8px}.dx .txtc ol,.dx .txtc ul{margin:0 0 8px;padding-left:20px}
 .dx code{font:12px var(--mono);background:var(--bg);padding:1px 4px}
@@ -154,7 +159,11 @@ const pad=n=>String(n).padStart(2,'0');
 const opened=new Set();let wnote={};
 async function tw(i,on){wnote[i]=on?'starting…':'stopping…';tick();try{const r=await fetch(`/api/worker?i=${i}&on=${on?1:0}`,{method:'POST'});wnote[i]=(await r.json()).message}catch(e){wnote[i]='unreachable'}tick();setTimeout(()=>{delete wnote[i]},6000)}let filter='all',layout='tile',note='',moving=false,confirmReset=false,resetNote='';
 let clickAnc=null;
-function toggle(k,el){if(el)clickAnc={k:el.dataset.k,top:el.getBoundingClientRect().top};opened.has(k)?opened.delete(k):opened.add(k);tick()}
+// selecting text in the tasks table: hold redraws (they reset the selection) while the mouse is down or text is selected there
+let mouseDown=false;addEventListener('mousedown',e=>mouseDown=!!e.target.closest('#tasks'));addEventListener('mouseup',()=>mouseDown=false);
+function selecting(el){const s=getSelection();return mouseDown||(s&&!s.isCollapsed&&el.contains(s.anchorNode))}
+function toggle(k,el){if(String(getSelection()).length)return;  // selecting text, not opening the row
+ if(el)clickAnc={k:el.dataset.k,top:el.getBoundingClientRect().top};opened.has(k)?opened.delete(k):opened.add(k);tick()}
 async function stopA(i){try{await fetch('/api/stop'+(i?'?i='+i:''),{method:'POST'})}catch(e){}tick()}
 async function go(i){try{await fetch('/api/go'+(i?'?i='+i:''),{method:'POST'})}catch(e){}tick()}
 let warmSet='',warmNote='';async function warm(){if(!warmSet)return;try{const r=await fetch('/api/warm?file='+encodeURIComponent(warmSet),{method:'POST'});warmNote=(await r.json()).message}catch(e){warmNote='unreachable'}tick()}
@@ -214,7 +223,7 @@ async function tick(){
  const vis=rows.filter(x=>filter=='all'||x.st==filter||(x.st=='done'&&x.res==filter));
  const head='<colgroup><col style="width:44px"><col style="width:calc(28% - 44px)"><col style="width:7%"><col style="width:8%"><col style="width:7%"><col style="width:5%"><col style="width:6%"><col style="width:7%"><col style="width:7%"><col style="width:25%"></colgroup><tr><th></th><th>prompt</th><th>condition</th><th>state</th><th>result</th><th class="n">worker</th><th class="n">time</th><th class="n">tool calls</th><th class="n">ctx</th><th>answer / error</th></tr>';
  // anchor: the first visible row stays in place, only content below changes; scroll inside blocks is preserved
- const TB=document.getElementById('tasks');let anc=null;
+ const TB=document.getElementById('tasks');if(selecting(TB))return;let anc=null;
  for(const r of TB.querySelectorAll('tr.row')){const b=r.getBoundingClientRect();if(b.bottom>0){anc={k:r.dataset.k,top:b.top};break}}
  if(clickAnc)anc=clickAnc;clickAnc=null;
  const inner={};TB.querySelectorAll('[data-s]').forEach(e=>inner[e.dataset.s]=e.scrollTop);
@@ -228,10 +237,10 @@ async function tick(){
   const q4=a=>`<div class="q4">${a.map(([k,v])=>`<div><span class="cap">${k}</span><b title="${v}">${v}</b></div>`).join('')}</div>`;
   const det=op?`<tr class="det"><td colspan="10"><div class="dx">
    ${U?`<div class="h2"><div><div class="sh"><span class="cap">Model and context</span></div>${q4(U.slice(0,4))}</div><div><div class="sh"><span class="cap">Tokens per task</span></div>${q4(U.slice(4))}</div></div>`:''}
-   <div class="h2 band"><div><div class="sh"><span class="cap">Prompt</span></div><div class="txtc" data-s="p:${esc(key)}">${md(t.prompt||t.scenario)}</div></div>
-    <div><div class="sh"><span class="cap">${t.answer?'Agent answer':'Error'}</span></div><div class="txtc" data-s="a:${esc(key)}">${t.answer||t.error?md(t.answer||t.error):'<p style="color:var(--mut)">none yet</p>'}</div></div></div>
-   <div class="band">${calls.length?`<div class="cr hd h2"><div class="l"><span>#</span><span>tool · ${calls.length}</span><span>arguments</span></div><div class="r"><span class="n">s</span><span>outcome</span></div></div>
-    ${calls.map((c,i)=>`<div class="cr h2"><div class="l"><span>${pad(i+1)}</span><b>${esc(c.tool)}</b><span class="a">${esc(c.input)}</span></div><div class="r"><span class="n">${c.dur??''}</span><span class="a">${c.error?tag('error','var(--err)')+' ':''}${esc((c.out||'').slice(0,200))}</span></div></div>`).join('')}`:'<div class="empty">no tool calls</div>'}</div>
+   ${t.steps||(t.forms||[]).length?convo(t,key):`<div class="h2 band"><div><div class="sh"><span class="cap">Prompt</span></div><div class="txtc" data-s="p:${esc(key)}">${md(t.prompt||t.scenario)}</div></div>
+    <div><div class="sh"><span class="cap">${t.answer?'Agent answer':'Error'}</span></div><div class="txtc" data-s="a:${esc(key)}">${t.answer||t.error?md(t.answer||t.error):'<p style="color:var(--mut)">none yet</p>'}</div></div></div>`}
+   ${t.steps||(t.forms||[]).length?'':`<div class="band">${calls.length?`<div class="cr hd h2"><div class="l"><span>#</span><span>tool · ${calls.length}</span><span>arguments</span></div><div class="r"><span class="n">s</span><span>outcome</span></div></div>
+    ${calls.map((c,i)=>`<div class="cr h2"><div class="l"><span>${pad(i+1)}</span><b>${esc(c.tool)}</b><span class="a">${esc(c.input)}</span></div><div class="r"><span class="n">${c.dur??''}</span><span class="a">${c.error?tag('error','var(--err)')+' ':''}${esc((c.out||'').slice(0,200))}</span></div></div>`).join('')}`:'<div class="empty">no tool calls</div>'}</div>`}
    </div>   </td></tr>`:'';
   return `<tr class="row ${op?'open':''}" data-k="${esc(key)}" onclick="toggle('${key.replace(/'/g,'')}',this)"><td class="arr">${op?'−':'+'}</td>
    <td class="txt"><div>${esc(plain(t.prompt||t.scenario||t.id))}</div></td><td>${cond?tag(cond,ccol(cond)):''}</td>
@@ -240,6 +249,51 @@ async function tick(){
    <td class="txt"><div>${esc(plain(t.answer||t.error||t.comment))}</div></td></tr>${det}`}).join(''):`<tr><td colspan="10" class="empty">no tasks</td></tr>`);
  TB.querySelectorAll('[data-s]').forEach(e=>{if(inner[e.dataset.s])e.scrollTop=inner[e.dataset.s]});
  if(anc){const r=[...TB.querySelectorAll('tr.row')].find(r=>r.dataset.k===anc.k);if(r){const d=r.getBoundingClientRect().top-anc.top;if(Math.abs(d)>0.5)window.scrollBy(0,d)}}
+}
+// conversation of a multi-step scenario: our turn (prompt or keys pressed in a form) | the agent's reply (a form or text)
+function formView(f){
+ const fs=f.fields||[];const c=f.content||{};
+ return `<div class="fq">${md(f.message||'')}</div>`+fs.map(x=>{
+  const opts=x.options||[],sel=x.start||0;  // the form as it arrives: cursor on the default, before our keys
+  return `<div class="ff"><div class="ft">${esc(x.title||x.name)}</div>${opts.length?opts.map((o,i)=>`<div class="fo ${i==sel?'on':''}"><span>${i==sel?'❯':''}</span>${esc(o)}</div>`).join(''):`<div class="fo on"><span>›</span><i class="caret"></i></div>`}</div>`}).join('');
+}
+function chosen(f){  // what our keys picked, in the form's words: "Delete: No"
+ return (f.fields||[]).filter(x=>x.name in f.content).map(x=>{const v=Array.isArray(f.content[x.name])?f.content[x.name][0]:f.content[x.name];
+  const k=(x.values||[]).findIndex(y=>y===v);return `${x.title||x.name}: ${k>=0?x.options[k]:JSON.stringify(v)}`}).join(' · ')||JSON.stringify(f.content)}
+function keysView(f){
+ const ks=f.keys||[];const st=f.action=='accept'?'':tag(f.action||'?',f.action=='accept'?'var(--ok)':'var(--err)');
+ const how=ks.length?ks.map(k=>`<kbd>${esc(k.replace(/^type:/,'⌨ '))}</kbd>`).join(' '):`<span class="mut">no keys — ${f.rule==null?'no rule, declined':'fields set directly'}</span>`;
+ return `<div class="keys">${how}</div><div class="kres">${st} ${f.content?`<span class="mono">${esc(chosen(f))}</span>`:''}${f.error?' '+tag('error','var(--err)')+' '+esc(f.error):''}</div>`;
+}
+function callRow(c,i){return `<div class="cr h2"><div class="l"><span>${pad(i)}</span><b>${esc(c.tool)}</b><span class="a">${esc(c.input)}</span></div><div class="r"><span class="n">${c.dur??''}</span><span class="a">${c.error?tag('error','var(--err)')+' ':''}${esc((c.out||'').slice(0,200))}</span></div></div>`}
+// one timeline in the order things happened: prompt → tool calls → form the agent asked during a call | our keys → … → answer
+function convo(t,key){
+ const steps=t.steps||[{prompt:t.prompt,answer:t.answer}],forms=t.forms||[],calls=t.calls_detail||[],out=[];
+ const card=(cap,body,s,cls='')=>`<div class="${cls}"><div class="sh"><span class="cap">${cap}</span></div><div class="txtc" data-s="${s}">${body}</div></div>`;
+ const N=n=>steps.length>1?` · step ${n}/${steps.length}`:'';
+ const prompt=n=>out.push(`<div class="h2 band tl">${card('Prompt'+N(n),md((steps[n-1]||{}).prompt||''),`p${n}:${esc(key)}`,'usc')}<div></div></div>`);
+ const answer=n=>{const s=steps[n-1]||{},last=n==steps.length,err=last&&t.error&&!s.answer;
+  out.push(`<div class="h2 band tl"><div></div>${card(err?'Error':'Agent answer'+N(n),s.answer?md(s.answer):err?md(t.error):'<p style="color:var(--mut)">none yet</p>',`a${n}:${esc(key)}`,'agc')}</div>`)};
+ const head=`<div class="cr hd h2"><div class="l"><span>#</span><span>tool</span><span>arguments</span></div><div class="r"><span class="n">s</span><span>outcome</span></div></div>`;
+ let step=0,k=0,open=false,headed=false;
+ const flush=()=>{if(open){out.push('</div>');open=false}};
+ const row=h=>{if(!open){out.push('<div class="band">'+(headed?'':head));open=headed=true}out.push(h)};
+ const start=n=>{flush();if(step)answer(step);step=n;prompt(n)};
+ if(!calls.length||calls[0].tool.indexOf('▶')!==0)start(1);
+ const shown=new Set();
+ calls.forEach((c,i)=>{
+  if(c.tool.indexOf('▶')===0){start(+c.tool.match(/(\d+)\//)[1]);return}
+  if(c.tool.indexOf('⇄')===0)return;  // old runs: forms as pseudo-calls
+  // a form is asked while its call runs: call (arguments) → form | our keys → the call's result
+  const mine=forms.map((f,j)=>[f,j]).filter(([f,j])=>f.call===i&&!shown.has(j));
+  row(callRow(mine.length?Object.assign({},c,{out:'… waiting for the form',dur:'',error:false}):c,++k));
+  mine.forEach(([f,j])=>{shown.add(j);flush();
+   out.push(`<div class="h2 band tl isform"><div></div>${card('Agent asks · form',formView(f),`f${j}:${esc(key)}`,'agc')}</div><div class="h2 band tl">${card('Our answer · keys',keysView(f),`k${j}:${esc(key)}`,'usc')}<div></div></div>`)});
+  if(mine.length)row(callRow(Object.assign({},c,{tool:'↳ '+c.tool,input:'result'}),k));
+ });
+ forms.forEach((f,j)=>{if(!shown.has(j)){flush();out.push(`<div class="h2 band tl isform"><div></div>${card('Agent asks · form',formView(f),`f${j}:${esc(key)}`,'agc')}</div><div class="h2 band tl">${card('Our answer · keys',keysView(f),`k${j}:${esc(key)}`,'usc')}<div></div></div>`)}});
+ flush();answer(step||1);
+ return out.join('');
 }
 const OPEN_ALL=new URLSearchParams(location.search).get('open')==='all';  // ?open=all: all rows expanded (video recording)
 tick();setInterval(tick,1000);
