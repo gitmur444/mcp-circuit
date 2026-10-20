@@ -75,7 +75,7 @@ def credentials(tmp):
         with open(os.open(cf, os.O_WRONLY | os.O_CREAT, 0o600), "w") as f:
             f.write(cred)
         os.chmod(cf, 0o644)  # container uid differs; the tmp dir itself is 0700
-        return ["-v", f"{cf}:/home/agent/.claude/.credentials.json:ro"]
+        return ["-v", f"{cf}:/cfg/credentials.json:ro"]  # copied into ~/.claude at start: a bind mount there makes it root-owned, and sessions (--continue) can't be saved
     if os.environ.get("ANTHROPIC_API_KEY"):
         return ["-e", "ANTHROPIC_API_KEY"]
     raise SystemExit("no Claude login: run `claude setup-token` and export CLAUDE_CODE_OAUTH_TOKEN (see `circuit doctor`)")
@@ -198,7 +198,8 @@ def run_agent(slot, job, outdir, model, on_live=None):
         # one container for the whole scenario: steps are turns of one conversation (--continue), like a human's follow-ups
         subprocess.run(["docker", "run", "-d", "--rm", "--name", name, "-w", W] + add_host + vol + envs + [IMAGE, "sleep", "infinity"],
                        check=True, capture_output=True)
-        subprocess.run(["docker", "exec", name, "sh", "-c", 'echo \'{"hasCompletedOnboarding":true,"bypassPermissionsModeAccepted":true}\' > ~/.claude.json'],
+        subprocess.run(["docker", "exec", name, "sh", "-c", 'mkdir -p ~/.claude && { [ ! -f /cfg/credentials.json ] || cp /cfg/credentials.json ~/.claude/.credentials.json; } && '
+                        'echo \'{"hasCompletedOnboarding":true,"bypassPermissionsModeAccepted":true}\' > ~/.claude.json'],
                        check=True, capture_output=True)
         steps = job.get("steps") or [{"prompt": job["prompt"]}]
         t0, calls, final, results, pending, ctx_max, last_live, live_model, live_usage = time.time(), [], "", [], {}, 0, 0.0, None, {}
