@@ -1,0 +1,198 @@
+[
+ {
+  "name": "React detective \u00b7 4 steps",
+  "cond": "github-mcp",
+  "steps": [
+   {
+    "prompt": "What license does the GitHub repo facebook/react use?",
+    "check": {
+     "all": [
+      "MIT"
+     ]
+    }
+   },
+   {
+    "prompt": "What is its main programming language?",
+    "check": {
+     "all": [
+      "JavaScript"
+     ]
+    }
+   },
+   {
+    "prompt": "Who is its top contributor by number of commits? Give the GitHub login.",
+    "check": {
+     "all": [
+      "sebmarkbage"
+     ]
+    }
+   },
+   {
+    "prompt": "What is the tag of its latest release?",
+    "check": {
+     "all": [
+      "19.3.1"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "VS Code detective \u00b7 4 steps",
+  "cond": "github-mcp",
+  "steps": [
+   {
+    "prompt": "What license does the GitHub repo microsoft/vscode use?",
+    "check": {
+     "all": [
+      "MIT"
+     ]
+    }
+   },
+   {
+    "prompt": "What is its main programming language?",
+    "check": {
+     "all": [
+      "TypeScript"
+     ]
+    }
+   },
+   {
+    "prompt": "Who is its top contributor by number of commits? Give the GitHub login.",
+    "check": {
+     "all": [
+      "bpasero"
+     ]
+    }
+   },
+   {
+    "prompt": "What is the tag of its latest release?",
+    "check": {
+     "all": [
+      "1.142.0"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "React detective \u00b7 2 steps",
+  "cond": "github-mcp",
+  "steps": [
+   {
+    "prompt": "What license does the GitHub repo facebook/react use?",
+    "check": {
+     "all": [
+      "MIT"
+     ]
+    }
+   },
+   {
+    "prompt": "What is its main programming language?",
+    "check": {
+     "all": [
+      "JavaScript"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "React detective \u00b7 4 steps",
+  "cond": "none",
+  "steps": [
+   {
+    "prompt": "What license does the GitHub repo facebook/react use?",
+    "check": {
+     "all": [
+      "MIT"
+     ]
+    }
+   },
+   {
+    "prompt": "What is its main programming language?",
+    "check": {
+     "all": [
+      "JavaScript"
+     ]
+    }
+   },
+   {
+    "prompt": "Who is its top contributor by number of commits? Give the GitHub login.",
+    "check": {
+     "all": [
+      "sebmarkbage"
+     ]
+    }
+   },
+   {
+    "prompt": "What is the tag of its latest release?",
+    "check": {
+     "all": [
+      "19.3.1"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "VS Code detective \u00b7 4 steps",
+  "cond": "none",
+  "steps": [
+   {
+    "prompt": "What license does the GitHub repo microsoft/vscode use?",
+    "check": {
+     "all": [
+      "MIT"
+     ]
+    }
+   },
+   {
+    "prompt": "What is its main programming language?",
+    "check": {
+     "all": [
+      "TypeScript"
+     ]
+    }
+   },
+   {
+    "prompt": "Who is its top contributor by number of commits? Give the GitHub login.",
+    "check": {
+     "all": [
+      "bpasero"
+     ]
+    }
+   },
+   {
+    "prompt": "What is the tag of its latest release?",
+    "check": {
+     "all": [
+      "1.142.0"
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "React detective \u00b7 2 steps",
+  "cond": "none",
+  "steps": [
+   {
+    "prompt": "What license does the GitHub repo facebook/react use?",
+    "check": {
+     "all": [
+      "MIT"
+     ]
+    }
+   },
+   {
+    "prompt": "What is its main programming language?",
+    "check": {
+     "all": [
+      "JavaScript"
+     ]
+    }
+   }
+  ]
+ }
+]
