@@ -1,5 +1,9 @@
 # MCP Circuit
 
+[![MCP Circuit dashboard](assets/screenshot.png)](https://mcp-circuit.surge.sh)
+
+**▶ Live demo (a recorded run you can click through): https://mcp-circuit.surge.sh**
+
 **Test MCP servers with real agents on real apps.**
 
 Is your MCP server actually helping agents, or just adding tokens? MCP Circuit runs the same tasks on several
