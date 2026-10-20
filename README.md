@@ -2,6 +2,8 @@
 
 [![MCP Circuit dashboard](assets/screenshot.png)](https://mcp-circuit.surge.sh)
 
+[![Tasks and tool calls](assets/tasks.png)](https://mcp-circuit.surge.sh)
+
 **▶ Live demo (a recorded run you can click through): https://mcp-circuit.surge.sh**
 
 **Test MCP servers with real agents on real apps.**
